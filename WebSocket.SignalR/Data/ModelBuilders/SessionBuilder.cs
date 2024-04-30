@@ -18,10 +18,14 @@ namespace WebSocket.SignalR.Data.ModelBuilders
                 .HasMaxLength(100)
                 .IsRequired();
 
-            builder.HasMany(p => p.SeatsTaken).WithOne(p => p.Session).HasForeignKey(p => p.SessionId);
-            builder.HasOne(p => p.Movie).WithMany(p => p.Sessions)
+            builder.HasMany(p => p.SeatsTaken)
+                .WithOne(p => p.Session)
+                .HasForeignKey(p => p.SessionId);
+            builder.HasOne(p => p.Movie)
+                .WithMany(p => p.Sessions)
                 .HasForeignKey(p => p.MovieId);
-            builder.HasOne(p => p.Room).WithMany(p => p.Sessions)
+            builder.HasOne(p => p.Room)
+                .WithMany(p => p.Sessions)
                 .HasForeignKey(p => p.MovieId);
 
             builder.Ignore(p => p.IsFull);

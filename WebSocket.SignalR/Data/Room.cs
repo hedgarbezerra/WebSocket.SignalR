@@ -5,6 +5,7 @@ namespace WebSocket.SignalR.Data
     public class Room
     {
         public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
         public ERoomType Type { get; set; }
         public int SeatCount { get => Seats.Count; }
         public bool IsEmpty { get => Seats.Any(); }

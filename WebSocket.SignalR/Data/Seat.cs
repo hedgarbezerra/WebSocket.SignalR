@@ -10,11 +10,14 @@
         public virtual Room? Room { get; set; } 
     }
     
-    public class SeatTaken : Seat
+    public class SeatTaken
     {
+        public Guid Id { get; set; }
         public Guid UserId { get; set; }
         public Guid SessionId { get; set; }
-        public AppUser? User { get; set; }
-        public Session? Session { get; set; }
+        public Guid SeatId { get; set; }
+        public virtual AppUser? User { get; set; }
+        public virtual Session? Session { get; set; }
+        public virtual Seat? Seat { get; set; }
     }
 }

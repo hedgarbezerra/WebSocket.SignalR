@@ -15,6 +15,10 @@ namespace WebSocket.SignalR.Data.ModelBuilders
                 .HasColumnType("integer").IsRequired();
             builder.Property(p => p.Column)
                 .HasColumnType("integer").IsRequired();
+
+            builder.HasOne(p => p.Room)
+                .WithMany(p => p.Seats)
+                .HasForeignKey(p => p.RoomId);
         }
     }
 
@@ -22,14 +26,11 @@ namespace WebSocket.SignalR.Data.ModelBuilders
     {
         public void Configure(EntityTypeBuilder<SeatTaken> builder)
         {
+            builder.ToTable("SessionTakenRoomSeats");
             builder.HasKey(p => p.Id);
-            builder.Property(p => p.Id);
-            builder.Property(p => p.IsHandicapAccessible)
-                .HasColumnType("bit");
-            builder.Property(p => p.Row)
-                .HasColumnType("integer").IsRequired();
-            builder.Property(p => p.Column)
-                .HasColumnType("integer").IsRequired();
+            builder.HasOne(p => p.Seat).WithMany()
+                .HasForeignKey(p => p.SeatId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

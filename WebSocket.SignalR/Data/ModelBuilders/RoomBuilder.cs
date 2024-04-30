@@ -9,9 +9,8 @@ namespace WebSocket.SignalR.Data.ModelBuilders
         {
             builder.ToTable("Rooms");
             builder.HasKey(p => p.Id);
-            builder.HasMany(q => q.Seats)
-                .WithOne(p => p.Room)
-                .HasForeignKey(p => p.RoomId);
+            builder.Property(p => p.Name).HasMaxLength(255);
+            builder.Property(p => p.Type).HasConversion<int>();
 
             builder.Ignore(p => p.IsEmpty);
             builder.Ignore(p => p.SeatCount);
@@ -19,12 +18,17 @@ namespace WebSocket.SignalR.Data.ModelBuilders
     }
 }
 
-//w =>
+//builder.OwnsMany(q => q.Seats, s =>
 //{
-//    w.ToTable("tbCustomDictionaryWord");
-//    w.HasKey(wo => wo.Id);
-//    w.WithOwner()
-//    .HasForeignKey(x => x.IdDictionary);
+//    s.ToTable("RoomSeats");
+//    s.HasKey(p => p.Id);
 
-//    w.Property(wp => wp.Word).HasColumnType("varchar(50)");
-//}
+//    s.Property(p => p.IsHandicapAccessible)
+//        .HasColumnType("bit");
+//    s.Property(p => p.Row)
+//        .HasColumnType("integer").IsRequired();
+//    s.Property(p => p.Column)
+//        .HasColumnType("integer").IsRequired();
+
+//    s.WithOwner(p => p.Room).HasForeignKey(p => p.RoomId);
+//});
