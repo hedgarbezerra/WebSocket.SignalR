@@ -4,8 +4,12 @@ using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Formatting.Compact;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Reflection;
 using WebSocket.SignalR.Data;
 using WebSocket.SignalR.Data.Configurations;
+using WebSocket.SignalR.Interfaces;
+using WebSocket.SignalR.Models;
+using WebSocket.SignalR.Services;
 
 namespace WebSocket.SignalR.Configuration
 {
@@ -75,7 +79,31 @@ namespace WebSocket.SignalR.Configuration
 
         public static IServiceCollection AddInternalServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddSingleton<IUriService>(o =>
+            {
+                var accessor = o.GetRequiredService<IHttpContextAccessor>();
+                var request = accessor?.HttpContext?.Request;
+                var uri = string.Concat(request?.Scheme, "://", request?.Host.ToUriComponent());
 
+                return new UriService(uri);
+            });
+
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var assembly in assemblies)
+            {
+                foreach (var type in assembly.GetTypes())
+                {
+                    var attrs = type.GetCustomAttributes<BindInterfaceAttribute>();
+                    if (!attrs.Any())
+                        continue;
+
+                    foreach (var attr in attrs)
+                    {
+                        var serviceDescription = new ServiceDescriptor(attr.Interface, type, attr.Lifetime);
+                        services.Add(serviceDescription);
+                    }
+                }
+            }
             return services;
         }
     }

@@ -3,7 +3,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text.Json;
 
-namespace WebSocket.SignalR.Data.Configurations
+namespace WebSocket.SignalR.Configuration
 {
     public class SwaggerDefaultValues : IOperationFilter
     {

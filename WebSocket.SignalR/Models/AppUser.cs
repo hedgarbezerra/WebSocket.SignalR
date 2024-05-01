@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace WebSocket.SignalR.Data
+namespace WebSocket.SignalR.Models
 {
     public class AppUser : IdentityUser<Guid>
     {

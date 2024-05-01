@@ -3,16 +3,16 @@ using System.Linq.Expressions;
 
 namespace WebSocket.SignalR.Interfaces
 {
-    public interface IRepository<T, TId> where T : class
+    public interface IRepository<T> where T : class
     {
         T Add(T obj);
         T Update(T obj);
-        void Delete(TId id);
+        void Delete(Guid id);
         IQueryable<T> Get();
         IQueryable<T> Get(Expression<Func<T, bool>> filter);
         IQueryable<T> Get(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? order = null, int? count = 0, int? skip = 0, bool reverse = false);
-        T Get(TId id);
+        T? Get(Guid id);
         DbContext GetDbContext();
-        void SaveChanges();
+        bool SaveChanges();
     }
 }

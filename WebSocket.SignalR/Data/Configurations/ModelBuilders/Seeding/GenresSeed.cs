@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using WebSocket.SignalR.Models;
 
-namespace WebSocket.SignalR.Data.ModelBuilders.Seeding
+namespace WebSocket.SignalR.Data.Configurations.ModelBuilders.Seeding
 {
     public class GenresSeed
     {

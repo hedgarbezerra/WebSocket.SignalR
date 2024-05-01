@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using WebSocket.SignalR.Models;
 
-namespace WebSocket.SignalR.Data.ModelBuilders
+namespace WebSocket.SignalR.Data.Configurations.ModelBuilders
 {
     public class SessionBuilder : IEntityTypeConfiguration<Session>
     {
@@ -22,10 +23,10 @@ namespace WebSocket.SignalR.Data.ModelBuilders
                 .WithOne(p => p.Session)
                 .HasForeignKey(p => p.SessionId);
             builder.HasOne(p => p.Movie)
-                .WithMany(p => p.Sessions)
+                .WithMany()
                 .HasForeignKey(p => p.MovieId);
             builder.HasOne(p => p.Room)
-                .WithMany(p => p.Sessions)
+                .WithMany()
                 .HasForeignKey(p => p.MovieId);
 
             builder.Ignore(p => p.IsFull);

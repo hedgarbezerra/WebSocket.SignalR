@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using WebSocket.SignalR.Models;
 
-namespace WebSocket.SignalR.Data.ModelBuilders
+namespace WebSocket.SignalR.Data.Configurations.ModelBuilders
 {
     public class MovieBuilder : IEntityTypeConfiguration<Movie>
     {
@@ -21,16 +22,16 @@ namespace WebSocket.SignalR.Data.ModelBuilders
             builder.HasMany(m => m.Genres)
                .WithMany(g => g.Movies);
 
-               //.UsingEntity<Dictionary<string, object>>(
-               //    "MovieGenre",
-               //    j => j.HasOne<Genre>().WithMany().HasForeignKey("GenreId"),
-               //    j => j.HasOne<Movie>().WithMany().HasForeignKey("MovieId"),
-               //    j =>
-               //    {
-               //        j.Property<Guid>("MovieId");
-               //        j.Property<Guid>("GenreId");
-               //        j.HasKey("MovieId", "GenreId");
-               //    });
+            //.UsingEntity<Dictionary<string, object>>(
+            //    "MovieGenre",
+            //    j => j.HasOne<Genre>().WithMany().HasForeignKey("GenreId"),
+            //    j => j.HasOne<Movie>().WithMany().HasForeignKey("MovieId"),
+            //    j =>
+            //    {
+            //        j.Property<Guid>("MovieId");
+            //        j.Property<Guid>("GenreId");
+            //        j.HasKey("MovieId", "GenreId");
+            //    });
 
         }
     }

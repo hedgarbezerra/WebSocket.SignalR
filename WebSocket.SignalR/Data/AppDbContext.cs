@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using WebSocket.SignalR.Data.ModelBuilders;
-using WebSocket.SignalR.Data.ModelBuilders.Seeding;
+using WebSocket.SignalR.Data.Configurations.ModelBuilders.Seeding;
+using WebSocket.SignalR.Data.Configurations.ModelBuilders;
+using WebSocket.SignalR.Models;
 
 namespace WebSocket.SignalR.Data
 {
@@ -17,14 +18,14 @@ namespace WebSocket.SignalR.Data
             builder.ApplyConfiguration(new MovieBuilder());
             builder.ApplyConfiguration(new GenreBuilder());
             builder.ApplyConfiguration(new RoomBuilder());
-            //builder.ApplyConfiguration(new SeatBuilder());
+            builder.ApplyConfiguration(new SeatBuilder());
             builder.ApplyConfiguration(new SeatTakenBuilder());
             builder.ApplyConfiguration(new SessionBuilder());
 
             base.OnModelCreating(builder);
 
-            //RoomsSeeds.Seed(builder);
-            //GenresSeed.Seed(builder);
+            RoomsSeeds.Seed(builder);
+            GenresSeed.Seed(builder);
         }
         DbSet<Movie> Movies { get; set; }
         DbSet<Genre> Genres { get; set; }

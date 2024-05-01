@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace WebSocket.SignalR.Data.Migrations
 {
     /// <inheritdoc />
@@ -227,20 +229,20 @@ namespace WebSocket.SignalR.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Seat",
+                name: "RoomSeats",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     RoomId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Row = table.Column<int>(type: "int", nullable: false),
-                    Column = table.Column<int>(type: "int", nullable: false),
+                    Row = table.Column<int>(type: "integer", nullable: false),
+                    Column = table.Column<int>(type: "integer", nullable: false),
                     IsHandicapAccessible = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Seat", x => x.Id);
+                    table.PrimaryKey("PK_RoomSeats", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Seat_Rooms_RoomId",
+                        name: "FK_RoomSeats_Rooms_RoomId",
                         column: x => x.RoomId,
                         principalTable: "Rooms",
                         principalColumn: "Id",
@@ -293,9 +295,9 @@ namespace WebSocket.SignalR.Data.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_SessionTakenRoomSeats_Seat_SeatId",
+                        name: "FK_SessionTakenRoomSeats_RoomSeats_SeatId",
                         column: x => x.SeatId,
-                        principalTable: "Seat",
+                        principalTable: "RoomSeats",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -304,6 +306,56 @@ namespace WebSocket.SignalR.Data.Migrations
                         principalTable: "Sessions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Genres",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { new Guid("15e74541-70f5-452a-9421-a02b86b42cf7"), "Terror" },
+                    { new Guid("3780e3e1-06b3-4d3b-aae4-18385d99d15e"), "Ação" },
+                    { new Guid("74631e9a-cb50-4e47-b185-36535c6813d4"), "Comédia" },
+                    { new Guid("76db2525-314d-4b91-bab2-e1390f09c68f"), "Thriller" },
+                    { new Guid("7ff7e4ea-7abd-41d8-849b-a4a0ffdf5414"), "Aventura" },
+                    { new Guid("a2d4b3e2-26fa-4930-b23e-d7c8fa1b61a9"), "Romance" },
+                    { new Guid("a5d151b9-1788-4aa5-b983-a1fce161e756"), "Animação" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Rooms",
+                columns: new[] { "Id", "Name", "Type" },
+                values: new object[,]
+                {
+                    { new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"), "Sala Pequena IMAX", 3 },
+                    { new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"), "Sala padrão 2D", 0 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "RoomSeats",
+                columns: new[] { "Id", "Column", "IsHandicapAccessible", "RoomId", "Row" },
+                values: new object[,]
+                {
+                    { new Guid("1f2c1dc5-7ed9-4083-8045-1d1d6b9bc46d"), 0, false, new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"), 0 },
+                    { new Guid("1f95fcc5-47f7-4e7f-96e0-81eb4b2792e0"), 0, false, new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"), 1 },
+                    { new Guid("30abacb2-eaaa-416e-adc9-0f30be118349"), 2, false, new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"), 0 },
+                    { new Guid("373f39c1-bf5f-42bc-abb0-6c60261cfca6"), 1, false, new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"), 0 },
+                    { new Guid("41eb7888-0655-43f1-847a-bcb520c32dfe"), 3, false, new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"), 2 },
+                    { new Guid("4a1e4fc1-cd3e-40ae-a376-408076eb9102"), 1, true, new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"), 2 },
+                    { new Guid("4e4bd0ca-4708-4ba8-93ef-2a9aae799355"), 3, false, new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"), 0 },
+                    { new Guid("4e97bc46-a1ba-410f-9c6d-f3ad6513ed19"), 3, false, new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"), 0 },
+                    { new Guid("5922d7c3-feba-4169-ab31-f861a7b722e2"), 0, false, new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"), 0 },
+                    { new Guid("5ff19dfe-b442-4210-9e4b-f7e6928dea06"), 0, false, new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"), 2 },
+                    { new Guid("710fa2f3-cb3b-44c8-8074-65e7a02541dd"), 3, true, new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"), 1 },
+                    { new Guid("a21f6176-1a04-4f36-b0c4-32ae7640414d"), 0, false, new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"), 1 },
+                    { new Guid("a4e4559b-95fb-4be9-9408-c5bd22805be2"), 2, false, new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"), 1 },
+                    { new Guid("b9d16f5e-a50c-4ba9-8e57-e29c58186959"), 2, true, new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"), 2 },
+                    { new Guid("d50831d2-8e20-4318-871f-bdaf524c277b"), 3, false, new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"), 1 },
+                    { new Guid("da9b786e-4210-459f-a894-99bbe3741256"), 2, false, new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"), 0 },
+                    { new Guid("ea0bd1c8-2c2a-4600-8b45-947d73a6cd1b"), 1, false, new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"), 1 },
+                    { new Guid("edea3885-2800-4ec8-8efe-b401a23396f5"), 2, true, new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"), 1 },
+                    { new Guid("efcb76fe-3605-4be5-8c99-27474531f397"), 1, false, new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"), 1 },
+                    { new Guid("fd2c22cc-c46d-48f6-95e9-0b35c896c0ea"), 1, false, new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"), 0 }
                 });
 
             migrationBuilder.CreateIndex(
@@ -351,8 +403,8 @@ namespace WebSocket.SignalR.Data.Migrations
                 column: "MoviesId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Seat_RoomId",
-                table: "Seat",
+                name: "IX_RoomSeats_RoomId",
+                table: "RoomSeats",
                 column: "RoomId");
 
             migrationBuilder.CreateIndex(
@@ -410,7 +462,7 @@ namespace WebSocket.SignalR.Data.Migrations
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "Seat");
+                name: "RoomSeats");
 
             migrationBuilder.DropTable(
                 name: "Sessions");

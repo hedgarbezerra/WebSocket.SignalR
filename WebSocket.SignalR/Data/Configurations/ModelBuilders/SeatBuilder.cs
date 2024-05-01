@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using WebSocket.SignalR.Models;
 
-namespace WebSocket.SignalR.Data.ModelBuilders
+namespace WebSocket.SignalR.Data.Configurations.ModelBuilders
 {
     public class SeatBuilder : IEntityTypeConfiguration<Seat>
     {

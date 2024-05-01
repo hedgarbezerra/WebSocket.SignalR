@@ -4,7 +4,7 @@ using WebSocket.SignalR.Interfaces;
 
 namespace WebSocket.SignalR.Data.Repository
 {
-    public abstract class BaseRepository<T> : IRepository<T, Guid> where T : class
+    public abstract class BaseRepository<T> : IRepository<T> where T : class
     {
         private readonly AppDbContext _dbContext;
 
@@ -18,11 +18,14 @@ namespace WebSocket.SignalR.Data.Repository
         public virtual void Delete(Guid id)
         {
             T obj = Get(id);
+            if (obj is null)
+                throw new InvalidOperationException($"{typeof(T)} not found. Unable to delete unexisting object.");
+
             _dbContext.Entry(obj).State = EntityState.Deleted;
             _dbContext.Remove(obj);
         }
 
-        public virtual T Get(Guid id)
+        public virtual T? Get(Guid id)
             => _dbContext.Set<T>().Find(id);
 
         public virtual IQueryable<T> Get() => _dbContext.Set<T>().AsQueryable();
@@ -47,6 +50,6 @@ namespace WebSocket.SignalR.Data.Repository
         }
         public void DisposeContext() => _dbContext.Dispose();
         public DbContext GetDbContext() => _dbContext;
-        public void SaveChanges() => _dbContext.SaveChanges();
+        public bool SaveChanges() => _dbContext.SaveChanges() > 0;
     }
 }

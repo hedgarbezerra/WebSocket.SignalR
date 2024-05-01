@@ -12,7 +12,7 @@ using WebSocket.SignalR.Data;
 namespace WebSocket.SignalR.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240430035403_Estrutura Inicial")]
+    [Migration("20240430124213_Estrutura Inicial")]
     partial class EstruturaInicial
     {
         /// <inheritdoc />
@@ -257,6 +257,43 @@ namespace WebSocket.SignalR.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Genres", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("3780e3e1-06b3-4d3b-aae4-18385d99d15e"),
+                            Name = "Ação"
+                        },
+                        new
+                        {
+                            Id = new Guid("74631e9a-cb50-4e47-b185-36535c6813d4"),
+                            Name = "Comédia"
+                        },
+                        new
+                        {
+                            Id = new Guid("a2d4b3e2-26fa-4930-b23e-d7c8fa1b61a9"),
+                            Name = "Romance"
+                        },
+                        new
+                        {
+                            Id = new Guid("15e74541-70f5-452a-9421-a02b86b42cf7"),
+                            Name = "Terror"
+                        },
+                        new
+                        {
+                            Id = new Guid("76db2525-314d-4b91-bab2-e1390f09c68f"),
+                            Name = "Thriller"
+                        },
+                        new
+                        {
+                            Id = new Guid("7ff7e4ea-7abd-41d8-849b-a4a0ffdf5414"),
+                            Name = "Aventura"
+                        },
+                        new
+                        {
+                            Id = new Guid("a5d151b9-1788-4aa5-b983-a1fce161e756"),
+                            Name = "Animação"
+                        });
                 });
 
             modelBuilder.Entity("WebSocket.SignalR.Data.Movie", b =>
@@ -318,6 +355,20 @@ namespace WebSocket.SignalR.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Rooms", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"),
+                            Name = "Sala padrão 2D",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"),
+                            Name = "Sala Pequena IMAX",
+                            Type = 3
+                        });
                 });
 
             modelBuilder.Entity("WebSocket.SignalR.Data.Seat", b =>
@@ -327,7 +378,7 @@ namespace WebSocket.SignalR.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Column")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsHandicapAccessible")
                         .HasColumnType("bit");
@@ -336,13 +387,175 @@ namespace WebSocket.SignalR.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Row")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.HasIndex("RoomId");
 
-                    b.ToTable("Seat");
+                    b.ToTable("RoomSeats", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("5922d7c3-feba-4169-ab31-f861a7b722e2"),
+                            Column = 0,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"),
+                            Row = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("fd2c22cc-c46d-48f6-95e9-0b35c896c0ea"),
+                            Column = 1,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"),
+                            Row = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("30abacb2-eaaa-416e-adc9-0f30be118349"),
+                            Column = 2,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"),
+                            Row = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("4e97bc46-a1ba-410f-9c6d-f3ad6513ed19"),
+                            Column = 3,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"),
+                            Row = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a21f6176-1a04-4f36-b0c4-32ae7640414d"),
+                            Column = 0,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"),
+                            Row = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("ea0bd1c8-2c2a-4600-8b45-947d73a6cd1b"),
+                            Column = 1,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"),
+                            Row = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("a4e4559b-95fb-4be9-9408-c5bd22805be2"),
+                            Column = 2,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"),
+                            Row = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("d50831d2-8e20-4318-871f-bdaf524c277b"),
+                            Column = 3,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"),
+                            Row = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("5ff19dfe-b442-4210-9e4b-f7e6928dea06"),
+                            Column = 0,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"),
+                            Row = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("4a1e4fc1-cd3e-40ae-a376-408076eb9102"),
+                            Column = 1,
+                            IsHandicapAccessible = true,
+                            RoomId = new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"),
+                            Row = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("b9d16f5e-a50c-4ba9-8e57-e29c58186959"),
+                            Column = 2,
+                            IsHandicapAccessible = true,
+                            RoomId = new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"),
+                            Row = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("41eb7888-0655-43f1-847a-bcb520c32dfe"),
+                            Column = 3,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("b0da2a16-cf90-4952-9efa-56f36016d2c5"),
+                            Row = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("1f2c1dc5-7ed9-4083-8045-1d1d6b9bc46d"),
+                            Column = 0,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"),
+                            Row = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("373f39c1-bf5f-42bc-abb0-6c60261cfca6"),
+                            Column = 1,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"),
+                            Row = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("da9b786e-4210-459f-a894-99bbe3741256"),
+                            Column = 2,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"),
+                            Row = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("4e4bd0ca-4708-4ba8-93ef-2a9aae799355"),
+                            Column = 3,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"),
+                            Row = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("1f95fcc5-47f7-4e7f-96e0-81eb4b2792e0"),
+                            Column = 0,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"),
+                            Row = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("efcb76fe-3605-4be5-8c99-27474531f397"),
+                            Column = 1,
+                            IsHandicapAccessible = false,
+                            RoomId = new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"),
+                            Row = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("edea3885-2800-4ec8-8efe-b401a23396f5"),
+                            Column = 2,
+                            IsHandicapAccessible = true,
+                            RoomId = new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"),
+                            Row = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("710fa2f3-cb3b-44c8-8074-65e7a02541dd"),
+                            Column = 3,
+                            IsHandicapAccessible = true,
+                            RoomId = new Guid("0acdd5d6-a868-465b-ac56-2a0a84a71e8f"),
+                            Row = 1
+                        });
                 });
 
             modelBuilder.Entity("WebSocket.SignalR.Data.SeatTaken", b =>
@@ -511,7 +724,7 @@ namespace WebSocket.SignalR.Data.Migrations
                         .IsRequired();
 
                     b.HasOne("WebSocket.SignalR.Data.Room", "Room")
-                        .WithMany("Sessions")
+                        .WithMany()
                         .HasForeignKey("MovieId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -534,8 +747,6 @@ namespace WebSocket.SignalR.Data.Migrations
             modelBuilder.Entity("WebSocket.SignalR.Data.Room", b =>
                 {
                     b.Navigation("Seats");
-
-                    b.Navigation("Sessions");
                 });
 
             modelBuilder.Entity("WebSocket.SignalR.Data.Session", b =>

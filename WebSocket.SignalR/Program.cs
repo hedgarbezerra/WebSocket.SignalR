@@ -1,17 +1,17 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+using System.Reflection;
 using WebSocket.SignalR.Configuration;
-using WebSocket.SignalR.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddVersioning(builder.Configuration);
 builder.Services.AddIdentitySupport(builder.Configuration);
 builder.Services.AddLogging(builder.Configuration);
+builder.Services.AddInternalServices(builder.Configuration);
+builder.Services.AddAutoMapper(typeof(AutoMapperSetup).Assembly);
 
 
 var app = builder.Build();
