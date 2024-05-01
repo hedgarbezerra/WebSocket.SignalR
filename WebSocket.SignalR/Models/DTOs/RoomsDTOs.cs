@@ -12,7 +12,7 @@ namespace WebSocket.SignalR.Models.DTOs
     }
     public class UpdateRoomDTO : CreateRoomDTO
     {
-        [Required]
+        [Required, Key]
         public Guid Id { get; set; }
     }
 }

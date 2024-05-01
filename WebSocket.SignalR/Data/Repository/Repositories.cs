@@ -22,7 +22,7 @@ namespace WebSocket.SignalR.Data.Repository
             }
         }
         [BindInterface(typeof(IRepository<SeatTaken>))]
-        public class SeatsTakenRepository : BaseRepository<Seat>
+        public class SeatsTakenRepository : BaseRepository<SeatTaken>
         {
             public SeatsTakenRepository(AppDbContext dbContext) : base(dbContext)
             {

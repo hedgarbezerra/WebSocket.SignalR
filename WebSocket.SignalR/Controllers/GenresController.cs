@@ -1,45 +1,86 @@
 ﻿using Asp.Versioning;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebSocket.SignalR.Interfaces;
+using WebSocket.SignalR.Models;
+using WebSocket.SignalR.Models.DTOs;
 
 namespace WebSocket.SignalR.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [ApiVersion("1.0", Deprecated = false)]
     [Route("api/v{version:apiVersion}/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class GenresController : ControllerBase
     {
-        // GET: api/<GenresController>
+        private readonly ILogger<GenresController> _logger;
+        private readonly IMoviesService _moviesService;
+        private readonly IMapper _mapper;
+
+        public GenresController(ILogger<GenresController> logger, IMoviesService moviesService, IMapper mapper)
+        {
+            ArgumentNullException.ThrowIfNull(logger, nameof(logger));
+            ArgumentNullException.ThrowIfNull(moviesService, nameof(moviesService));
+            ArgumentNullException.ThrowIfNull(mapper, nameof(mapper));
+
+            _logger = logger;
+            _moviesService = moviesService;
+            _mapper = mapper;
+        }
+
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IActionResult Get()
         {
-            return new string[] { "value1", "value2" };
+            try
+            { 
+                var genres = _moviesService.GetGenres();
+
+                return Ok(genres);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
 
-        // GET api/<GenresController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet]
+        [Route("pagination")]
+        public IActionResult GetPaginated([FromQuery] PaginationInput pagination)
         {
-            return "value";
+            try
+            {
+                var genres = _moviesService.GetGenres(pagination, HttpContext?.Request?.Path);
+
+                return Ok(genres);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
 
-        // POST api/<GenresController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public IActionResult Post([FromBody] CreateGenreDTO request)
         {
-        }
+            try
+            {
+                if(!ModelState.IsValid)
+                    return BadRequest(ModelState);
 
-        // PUT api/<GenresController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
+                var genre = _mapper.Map<Genre>(request);
+                var genres = _moviesService.AddGenre(genre);
 
-        // DELETE api/<GenresController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+                return Ok(genres);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
     }
 }

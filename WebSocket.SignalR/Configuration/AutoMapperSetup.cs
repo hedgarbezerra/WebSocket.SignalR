@@ -6,7 +6,7 @@ namespace WebSocket.SignalR.Configuration
 {
     public class AutoMapperSetup : Profile
     {
-        protected AutoMapperSetup()
+        public AutoMapperSetup()
         {
             CreateMap<Movie, CreateMovieDTO>()
                 .IncludeAllDerived()

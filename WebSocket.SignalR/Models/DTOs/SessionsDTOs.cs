@@ -8,14 +8,14 @@ namespace WebSocket.SignalR.Models.DTOs
         public Guid MovieId { get; set; }
         [Required]
         public Guid RoomId { get; set; }
-        [Required]
+        [Required, MaxLength(255)]
         public string Language { get; set; }
         [Required]
         public DateTime Date { get; set; }
     }
     public class UpdateSessionDTO : CreateSessionDTO
     {
-        [Required]
+        [Required, Key]
         public Guid Id { get; set; }
     }
 
