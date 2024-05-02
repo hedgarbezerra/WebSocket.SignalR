@@ -1,16 +1,14 @@
-﻿namespace WebSocket.SignalR.Models
-{
-    public class PaginationInput
-    {
-        public PaginationInput(int index = 1, int size = 10, string searchTerm = "")
-        {
-            Index = index;
-            Size = size;
-            SearchTerm = searchTerm;
-        }
+﻿using System.ComponentModel.DataAnnotations;
 
-        public int Index { get; }
-        public int Size { get; } 
-        public string SearchTerm { get; } 
+namespace WebSocket.SignalR.Models
+{
+    public record PaginationInput
+    {
+        [Required]
+        public int Index { get; set; } = 1;
+        [Required]
+        public int Size { get; set; } = 10;
+        [MaxLength(255)]
+        public string SearchTerm { get; set; } = string.Empty;
     }
 }

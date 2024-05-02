@@ -161,5 +161,7 @@ namespace WebSocket.SignalR.Services
 
             return _seatsRepository.SaveChanges();
         }
+
+        public bool RoomExists(Guid roomId) => _roomsRepository.Get(m => m.Id == roomId).Any();
     }
 }

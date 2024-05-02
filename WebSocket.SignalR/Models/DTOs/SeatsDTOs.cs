@@ -2,7 +2,7 @@
 
 namespace WebSocket.SignalR.Models.DTOs
 {
-    public class CreateSeatDTO
+    public record CreateSeatDTO
     {
         [Required, Key]
         public Guid RoomId { get; set; }
@@ -14,7 +14,7 @@ namespace WebSocket.SignalR.Models.DTOs
         public bool IsHandicapAccessible { get; set; }
     }
 
-    public class UpdateSeatDTO : CreateSeatDTO
+    public record UpdateSeatDTO : CreateSeatDTO
     {
         [Required, Key]
         public Guid Id { get; set; }

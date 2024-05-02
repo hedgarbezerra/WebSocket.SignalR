@@ -21,11 +21,11 @@ namespace WebSocket.SignalR.Configuration
                 options.SwaggerDoc(description.GroupName, CreateInfoForApiVersion(description));
             }
 
-            options.AddSecurityDefinition(IdentityConstants.BearerScheme, new OpenApiSecurityScheme()
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
             {
                 Name = "Authorization",
                 Type = SecuritySchemeType.ApiKey,
-                Scheme = IdentityConstants.BearerScheme,
+                Scheme = "Bearer",
                 In = ParameterLocation.Header,
                 Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
             });

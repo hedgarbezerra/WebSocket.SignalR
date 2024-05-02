@@ -38,9 +38,6 @@ namespace WebSocket.SignalR.Controllers
         {
             try
             {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
-
                 if (!_userManager.SupportsUserEmail)
                 {
                     throw new NotSupportedException($"{nameof(AppUser)} requires a user store with email support.");

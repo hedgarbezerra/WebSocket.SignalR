@@ -23,21 +23,32 @@ namespace WebSocket.SignalR.Services
             _uriService = uriService;
         }
 
-        public Guid AddMovie(Movie movie)
+        public Guid AddMovie(Movie movie, IEnumerable<Guid> genresIds = null!)
         {
             ArgumentNullException.ThrowIfNull(movie);
 
             var insertedMovie = _moviesRepository.Add(movie);
+            if(genresIds is not null)
+            {
+                var genres = genresIds.Select(id => _genresRepository.Get(id)).Where(g => g is not null).ToList();
+                movie.Genres = genres;
+            }
+
             _moviesRepository.SaveChanges();
 
             return insertedMovie.Id;
         }
 
-        public bool UpdateMovie(Movie movie)
+        public bool UpdateMovie(Movie movie, IEnumerable<Guid> genresIds = null!)
         {
             ArgumentNullException.ThrowIfNull(movie);
 
             var updatedMovie = _moviesRepository.Update(movie);
+            if (genresIds is not null)
+            {
+                var genres = genresIds.Select(id => _genresRepository.Get(id)).Where(g => g is not null).ToList();
+                movie.Genres = genres;
+            }
 
             return _moviesRepository.SaveChanges();
         }
@@ -190,5 +201,22 @@ namespace WebSocket.SignalR.Services
 
             return _moviesRepository.SaveChanges();
         }
+
+        public bool AddGenresToMovie(IEnumerable<Guid> genresIds, Guid movieId)
+        {
+            var movie = _moviesRepository.Get(movieId);
+            if (movie is null)
+                return false;
+
+            var genres = genresIds.Select(id => _genresRepository.Get(id)).Where(g => g is not null);
+            movie.Genres.AddRange(genres);
+
+            return _moviesRepository.SaveChanges();
+        }
+
+        public bool MovieExists(Guid id) => _moviesRepository.Get(m => m.Id == id).Any();
+
+        public bool GenreExists(Guid id) => _genresRepository.Get(m => m.Id == id).Any();
+
     }
 }

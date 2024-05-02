@@ -14,6 +14,7 @@ namespace WebSocket.SignalR.Data.Repository
         }
 
         public virtual T Add(T obj) => _dbContext.Add(obj).Entity;
+        public virtual void AddRange(IEnumerable<T> objs) => _dbContext.AddRange(objs);
 
         public virtual void Delete(Guid id)
         {

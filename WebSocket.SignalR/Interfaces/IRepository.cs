@@ -6,6 +6,7 @@ namespace WebSocket.SignalR.Interfaces
     public interface IRepository<T> where T : class
     {
         T Add(T obj);
+        void AddRange(IEnumerable<T> objs);
         T Update(T obj);
         void Delete(Guid id);
         IQueryable<T> Get();

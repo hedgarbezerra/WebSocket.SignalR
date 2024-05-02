@@ -1,9 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using static WebSocket.SignalR.Enumerations;
 
 namespace WebSocket.SignalR.Models.DTOs
 {
-    public class CreateMovieDTO
+    public record CreateMovieDTO
     {
         [Required, MaxLength(255), ]
         public string Name { get; set; }
@@ -19,10 +18,21 @@ namespace WebSocket.SignalR.Models.DTOs
         [Required]
         public DateTime Release { get; set; }
         public List<string> Starring { get; set; } = new List<string>();
+        public List<Guid> Genres { get; set; } = new List<Guid>();
     }
-    public class UpdateMovieDTO
+
+    public record UpdateMovieDTO: CreateMovieDTO
     {
         [Required, Key]
         public Guid Id { get; set; }
+    }
+
+    public record AssignGenresToMovieDTO
+    {
+        [Required, Key]
+        public Guid Id { get; set; }
+        [Required]
+        public List<Guid> Genres { get; set; } = new List<Guid>();
+
     }
 }

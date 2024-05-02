@@ -102,6 +102,10 @@ namespace WebSocket.SignalR.Services
             ArgumentNullException.ThrowIfNull(user, nameof(user));
             ArgumentNullException.ThrowIfNull(session, nameof(session));
 
+            var exists = _seatsRepository.Get(s => s.SeatId == seat.Id).Any();
+            if (exists)
+                return false;
+
             var seatTaken = SeatTaken.Create(user.Id, session.Id, seat.Id);
 
             _seatsRepository.Add(seatTaken);
@@ -115,11 +119,34 @@ namespace WebSocket.SignalR.Services
             if (session is null)
                 return false;
 
+            var exists = _seatsRepository.Get(s => s.SeatId == seatId).Any();
+            if(exists)
+                return false;
+
             var seatTaken = SeatTaken.Create(userId, sessionId, seatId);
 
             _seatsRepository.Add(seatTaken);
 
             return _seatsRepository.SaveChanges();
         }
+        public bool AssignSeatToUserSession(Guid userId, Guid sessionId, IEnumerable<Guid> seatsIds)
+        {
+            var session = GetSession(sessionId);
+            if (session is null)
+                return false;
+
+            var takenSeats =  seatsIds.Select(_seatsRepository.Get);
+            if (takenSeats.Count() != seatsIds.Count())
+                return false;
+
+            var seatsTakenCreated = seatsIds.Select(seatId => SeatTaken.Create(userId, sessionId, seatId));
+
+            _seatsRepository.AddRange(seatsTakenCreated);
+
+            return _seatsRepository.SaveChanges();
+        }
+
+        public bool SessionExists(Guid sessionId) => _sessionsRepository.Get(m => m.Id == sessionId).Any();
+
     }
 }

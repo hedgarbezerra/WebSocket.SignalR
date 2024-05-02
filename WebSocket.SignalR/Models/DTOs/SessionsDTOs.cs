@@ -2,7 +2,7 @@
 
 namespace WebSocket.SignalR.Models.DTOs
 {
-    public class CreateSessionDTO
+    public record CreateSessionDTO
     {
         [Required]
         public Guid MovieId { get; set; }
@@ -13,10 +13,28 @@ namespace WebSocket.SignalR.Models.DTOs
         [Required]
         public DateTime Date { get; set; }
     }
-    public class UpdateSessionDTO : CreateSessionDTO
+    public record UpdateSessionDTO : CreateSessionDTO
     {
         [Required, Key]
         public Guid Id { get; set; }
     }
 
+    public record AssignSeatToUserDTO
+    {
+        [Required]
+        public Guid UserId { get; set; }
+        [Required]
+        public Guid SessionId { get; set; }
+        [Required]
+        public Guid SeatId { get; set; }
+    }
+    public record AssignMultipleSeatsToUserDTO
+    {
+        [Required]
+        public Guid UserId { get; set; }
+        [Required]
+        public Guid SessionId { get; set; }
+        [Required]
+        public List<Guid> SeatsIds { get; set; }
+    }
 }

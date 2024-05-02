@@ -2,7 +2,7 @@
 
 namespace WebSocket.SignalR.Models.DTOs
 {
-    public class UserRegisterDTO
+    public record UserRegisterDTO
     {
         [Required, MaxLength(500)]
         public string Email { get; set; }

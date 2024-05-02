@@ -26,6 +26,7 @@ app.UseSwaggerUI(c =>
         c.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName);
     }
 });
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
