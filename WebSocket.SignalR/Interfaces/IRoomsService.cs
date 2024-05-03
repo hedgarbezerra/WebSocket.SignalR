@@ -1,27 +1,28 @@
-﻿using System.Linq.Expressions;
+﻿using FluentResults;
+using System.Linq.Expressions;
 using WebSocket.SignalR.Models;
 
 namespace WebSocket.SignalR.Interfaces
 {
     public interface IRoomsService
     {
-        Room? GetRoom(Guid roomId);
-        IReadOnlyList<Room> GetRooms();
-        IReadOnlyList<Room> GetRooms(Expression<Func<Room, bool>> filter);
-        PaginatedList<Room> GetRooms(PaginationInput pagination, string route);
-        Guid AddRoom(Room room);
-        bool UpdateRoom(Room room);
-        bool DeleteRoom(Guid roomId);
-        bool RoomExists(Guid roomId);
+        Result<Room?> GetRoom(Guid roomId);
+        Result<List<Room>> GetRooms();
+        Result<List<Room>> GetRooms(Expression<Func<Room, bool>> filter);
+        Result<PaginatedList<Room>> GetRooms(PaginationInput pagination, string route);
+        Result<Guid> AddRoom(Room room);
+        Result UpdateRoom(Room room);
+        Result DeleteRoom(Guid roomId);
+        Result RoomExists(Guid roomId);
 
-        Seat? GetSeat(Guid id);
-        Seat? GetSeat(Guid roomId, int row, int column);
-        bool UpdateSeat(Seat seat);
-        bool DeleteSeat(Guid seatId);
-        IReadOnlyList<Seat> GetSeats(Guid roomId);
-        bool AddSeatToRoom(Seat seat, Guid roomId);
-        bool AddSeatToRoom(Guid seatId, Guid roomId);
-        bool AddSeatToRoom(Seat seat, Room room);
+        Result<Seat?> GetSeat(Guid id);
+        Result<Seat?> GetSeat(Guid roomId, int row, int column);
+        Result DeleteSeat(Guid seatId);
+        Result<Seat?> DeleteSeat(Guid roomId, int row, int column);
+        Result<List<Seat>> GetSeats(Guid roomId);
+        Result AddSeatToRoom(Seat seat, Guid roomId);
+        Result AddSeatToRoom(Guid seatId, Guid roomId);
+        Result AddSeatToRoom(Seat seat, Room room);
 
     }
 }

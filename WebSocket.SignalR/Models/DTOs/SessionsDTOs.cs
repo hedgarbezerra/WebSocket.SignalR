@@ -22,16 +22,12 @@ namespace WebSocket.SignalR.Models.DTOs
     public record AssignSeatToUserDTO
     {
         [Required]
-        public Guid UserId { get; set; }
-        [Required]
         public Guid SessionId { get; set; }
         [Required]
         public Guid SeatId { get; set; }
     }
     public record AssignMultipleSeatsToUserDTO
     {
-        [Required]
-        public Guid UserId { get; set; }
         [Required]
         public Guid SessionId { get; set; }
         [Required]

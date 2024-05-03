@@ -1,7 +1,10 @@
-﻿using System.Linq.Expressions;
+﻿using FluentResults;
+using Microsoft.AspNetCore.Http.HttpResults;
+using System.Linq.Expressions;
 using WebSocket.SignalR.Configuration;
 using WebSocket.SignalR.Interfaces;
 using WebSocket.SignalR.Models;
+using static WebSocket.SignalR.Data.Repository.Repositories;
 
 namespace WebSocket.SignalR.Services
 {
@@ -23,72 +26,108 @@ namespace WebSocket.SignalR.Services
             _uriService = uriService;
         }
 
-        public Guid AddMovie(Movie movie, IEnumerable<Guid> genresIds = null!)
+
+        public Result<Guid> AddMovie(Movie movie)
         {
-            ArgumentNullException.ThrowIfNull(movie);
+            if (movie is null)
+                return Result.Fail($"The parameter '{nameof(movie)}' provided cannot be null.");
 
             var insertedMovie = _moviesRepository.Add(movie);
-            if(genresIds is not null)
-            {
-                var genres = genresIds.Select(id => _genresRepository.Get(id)).Where(g => g is not null).ToList();
-                movie.Genres = genres;
-            }
 
-            _moviesRepository.SaveChanges();
-
-            return insertedMovie.Id;
+            return Result.Ok(_moviesRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok(insertedMovie.Id).WithSuccess($"Movie '{movie.Name}' created successfully.")
+                    : Result.Fail($"Movie '{movie.Name}' was not created."));
         }
-
-        public bool UpdateMovie(Movie movie, IEnumerable<Guid> genresIds = null!)
+        public Result<Guid> AddMovie(Movie movie, IEnumerable<Guid> genresIds = null!)
         {
-            ArgumentNullException.ThrowIfNull(movie);
+            throw new Exception("ashujsauhj");
+            if (movie is null)
+                return Result.Fail($"The parameter '{nameof(movie)}' provided cannot be null.");
 
-            var updatedMovie = _moviesRepository.Update(movie);
+            var insertedMovie = _moviesRepository.Add(movie);
             if (genresIds is not null)
             {
                 var genres = genresIds.Select(id => _genresRepository.Get(id)).Where(g => g is not null).ToList();
                 movie.Genres = genres;
             }
 
-            return _moviesRepository.SaveChanges();
+            return Result.Ok(_moviesRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok(insertedMovie.Id).WithSuccess($"Movie '{movie.Name}' created successfully.")
+                    : Result.Fail($"Movie '{movie.Name}' was not created."));
         }
-
-        public bool DeleteMovie(Guid movieId)
+        public Result UpdateMovie(Movie movie)
         {
-            if (movieId == Guid.Empty)
-                throw new ArgumentNullException(nameof(movieId));
+            if (movie is null)
+                return Result.Fail($"The parameter '{nameof(movie)}' provided cannot be null.");
 
+            var updatedMovie = _moviesRepository.Update(movie);
+
+            return Result.Ok(_moviesRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok().WithSuccess($"Movie '{movie.Name}' updated successfully.")
+                    : Result.Fail($"Movie '{movie.Name}' was not updated."));
+        }
+        public Result UpdateMovie(Movie movie, IEnumerable<Guid> genresIds = null!)
+        {
+            if (movie is null)
+                return Result.Fail($"The parameter '{nameof(movie)}' provided cannot be null.");
+
+            if (genresIds is not null)
+            {
+                var genres = genresIds.Select(id => _genresRepository.Get(id)).Where(g => g is not null).ToList();
+                movie.Genres = genres;
+            }
+
+            return Result.Ok(_moviesRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok().WithSuccess($"Movie '{movie.Name}' updated successfully.")
+                    : Result.Fail($"Movie '{movie.Name}' was not updated."));
+        }
+        public Result DeleteMovie(Guid movieId)
+        {
+            var result = MovieExists(movieId);
+            if (result.IsFailed)
+                return result;
             _moviesRepository.Delete(movieId);
-            return _moviesRepository.SaveChanges();
+
+            return Result.Ok(_moviesRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok().WithSuccess($"Movie with identifier '{movieId}' successfully deleted.")
+                    : Result.Fail($"Movie with identifier '{movieId}' was not deleted."));
         }
-
-        public Movie? GetMovie(Guid movieId)
+        public Result MovieExists(Guid movieId)
         {
-            if (movieId == Guid.Empty)
-                throw new ArgumentNullException(nameof(movieId));
+            bool movieFound = _moviesRepository.Get(m => m.Id == movieId).Any();
 
+            return Result.OkIf(movieFound, $"Movie with identifier '{movieId}' not found.");
+        }
+        public Result<Movie?> GetMovie(Guid movieId)
+        {
             var movie = _moviesRepository.Get(movieId);
-            return movie;
-        }
 
-        public IReadOnlyList<Movie> GetMovies()
+            return Result.Ok(movie is not null)
+                .Bind(v => v ?
+                    Result.Ok(movie)
+                    : Result.Fail($"Movie with identifier '{movieId}' not found."));
+        }
+        public Result<List<Movie>> GetMovies()
         {
-            var movies = _moviesRepository.Get().ToList().AsReadOnly();
+            var movies = _moviesRepository.Get().ToList();
 
-            return movies;
+            return Result.Ok(movies).WithSuccess($"Total count of movies: {movies.Count}.");
         }
-
-        public IReadOnlyList<Movie> GetMovies(Expression<Func<Movie, bool>> filter)
+        public Result<List<Movie>> GetMovies(Expression<Func<Movie, bool>> filter)
         {
-            var movies = _moviesRepository.Get(filter).ToList().AsReadOnly();
+            var movies = _moviesRepository.Get(filter).ToList();
 
-            return movies;
+            return Result.Ok(movies).WithSuccess($"Total count of movies: {movies.Count}.");
         }
-
-        public PaginatedList<Movie> GetMovies(PaginationInput pagination, string route)
+        public Result<PaginatedList<Movie>> GetMovies(PaginationInput pagination, string route)
         {
             var movies = _moviesRepository.Get();
-            if(!string.IsNullOrEmpty(pagination.SearchTerm))
+            if (!string.IsNullOrEmpty(pagination.SearchTerm))
             {
                 var actualTerm = pagination.SearchTerm.Split(' ');
                 for (int i = 0; i < actualTerm.Length; i++)
@@ -99,64 +138,80 @@ namespace WebSocket.SignalR.Services
             }
 
             var paginated = new PaginatedList<Movie>(movies, _uriService, route, pagination.Index, pagination.Size);
-            return paginated;
+            return Result.Ok(paginated).WithSuccess($"page '{paginated.PageIndex}' from '{paginated.TotalPages}' - Total itens: {paginated.TotalCount}");
         }
 
-        public Guid AddGenre(Genre genre)
+        public Result<Guid> AddGenre(Genre genre)
         {
-            ArgumentNullException.ThrowIfNull(genre);
+            if (genre is null)
+                return Result.Fail($"The parameter '{nameof(genre)}' provided cannot be null.");
 
-            var insertedGenre = _genresRepository.Add(genre);
+            var insertedMovie = _genresRepository.Add(genre);
             _genresRepository.SaveChanges();
 
-            return insertedGenre.Id;
+            return Result.Ok(insertedMovie.Id)
+                .WithSuccess(new Success($"The genre at '{genre.Name}' was created with identifier {insertedMovie.Id}"));
         }
-
-
-        public bool DeleteGenre(Guid genreId)
+        public Result UpdateGenre(Genre genre)
         {
-            if(genreId == Guid.Empty)
-                throw new ArgumentNullException(nameof(genreId));
+            if (genre is null)
+                return Result.Fail($"The parameter '{nameof(genre)}' provided cannot be null.");
 
+            var updatedMovie = _genresRepository.Update(genre);
+
+            return Result.Ok(_genresRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok().WithSuccess($"Genre with identifier '{genre.Id}' updated successfully.")
+                    : Result.Fail($"Genre with identifier '{genre.Id}' was not updated."));
+        }
+        public Result DeleteGenre(Guid genreId)
+        {
+            var result = GenreExists(genreId);
+            if (result.IsFailed)
+                return result;
             _genresRepository.Delete(genreId);
 
-            return _genresRepository.SaveChanges();
+            return Result.Ok(_genresRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok().WithSuccess($"Genre with identifier '{genreId}' successfully deleted.")
+                    : Result.Fail($"Genre with identifier '{genreId}' was not deleted."));
         }
-
-        public Genre? GetGenre(Guid genreId)
+        public Result GenreExists(Guid genreId)
         {
-            if (genreId == Guid.Empty)
-                throw new ArgumentNullException(nameof(genreId));
+            bool genreFound = _genresRepository.Get(m => m.Id == genreId).Any();
 
-            return _genresRepository.Get(genreId);
+            return Result.OkIf(genreFound, $"Genre with identifier '{genreId}' not found.");
         }
-
-        public IReadOnlyList<Genre> GetGenres()
+        public Result<Genre?> GetGenre(Guid genreId)
         {
-            var genres = _genresRepository.Get().ToList().AsReadOnly();
+            var genre = _genresRepository.Get(genreId);
 
-            return genres;
+            return Result.Ok(genre is not null)
+                .Bind(v => v ?
+                    Result.Ok(genre)
+                    : Result.Fail($"Genre with identifier '{genreId}' not found."));
         }
-
-        public IReadOnlyList<Genre> GetGenres(Guid movieId)
+        public Result<List<Genre>> GetGenres()
         {
-            var movie = _moviesRepository.Get(movieId);
-            if (movie is null)
-                return [];
-            
-            var  genres = movie.Genres.AsReadOnly();
+            var genres = _genresRepository.Get().ToList();
 
-            return genres;
+            return Result.Ok(genres).WithSuccess($"Total count of genres: {genres.Count}.");
         }
-
-        public IReadOnlyList<Genre> GetGenres(Expression<Func<Genre, bool>> filter)
+        public Result<List<Genre>> GetGenres(Guid movieId)
         {
-            var genres = _genresRepository.Get(filter).ToList().AsReadOnly();
+            var movieResult = GetMovie(movieId);
+            if (movieResult.IsFailed)
+                return movieResult.ToResult();
 
-            return genres;
+            return Result.Ok(movieResult.Value.Genres);
         }
+        public Result<List<Genre>> GetGenres(Expression<Func<Genre, bool>> filter)
+        {
+            var genres = _genresRepository.Get(filter).ToList();
 
-        public PaginatedList<Genre> GetGenres(PaginationInput pagination, string route)
+            return Result.Ok(genres).WithSuccess($"Total count of genres: {genres.Count}.");
+        }
+        public Result<PaginatedList<Genre>> GetGenres(PaginationInput pagination, string route)
         {
             var genres = _genresRepository.Get();
             if (!string.IsNullOrEmpty(pagination.SearchTerm))
@@ -168,55 +223,58 @@ namespace WebSocket.SignalR.Services
                     genres = genres.Where(t => t.Name.Contains(term));
                 }
             }
+
             var paginated = new PaginatedList<Genre>(genres, _uriService, route, pagination.Index, pagination.Size);
-            return paginated;
+            return Result.Ok(paginated).WithSuccess($"page '{paginated.PageIndex}' from '{paginated.TotalPages}' - Total itens: {paginated.TotalCount}");
         }
 
-        public bool UpdateGenre(Genre genre)
+        public Result AddGenreToMovie(Genre genre, Movie movie)
         {
-            ArgumentNullException.ThrowIfNull(genre);
-
-            var updatedGenre = _genresRepository.Update(genre);
-            return _genresRepository.SaveChanges();
-        }
-
-        public bool AddGenreToMovie(Genre genre, Movie movie)
-        {
-            ArgumentNullException.ThrowIfNull(genre);
-            ArgumentNullException.ThrowIfNull(movie);
-
-            movie.Genres.Add(genre);
-
-            return _moviesRepository.SaveChanges();
-        }
-
-        public bool AddGenreToMovie(Guid genreId, Guid movieId)
-        {
-            var genre = _genresRepository.Get(genreId);
-            var movie = _moviesRepository.Get(movieId);
-            if (movie is null || genre is null)
-                return false;
-
-            movie.Genres.Add(genre);
-
-            return _moviesRepository.SaveChanges();
-        }
-
-        public bool AddGenresToMovie(IEnumerable<Guid> genresIds, Guid movieId)
-        {
-            var movie = _moviesRepository.Get(movieId);
+            var result = Result.Ok();
+            if (genre is null)
+                result.WithError($"The parameter '{nameof(genre)}' cannot be null.");
             if (movie is null)
-                return false;
+                result.WithError($"The parameter '{nameof(movie)}' cannot be null.");
+
+            if (result.IsFailed)
+                return result;
+
+            movie.Genres.Add(genre);
+
+            return Result.Ok(_genresRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok().WithSuccess($"Genre '{genre.Name}' was assigned to '{movie.Name}'.")
+                    : Result.Fail($"Genre '{genre.Name} was not assigned to '{movie.Name}'."));
+        }
+
+        public Result AddGenreToMovie(Guid genreId, Guid movieId)
+        {
+            var genreResult = GetGenre(genreId);
+            var movieResult = GetMovie(movieId);
+            if (movieResult.IsFailed || genreResult.IsFailed)
+                return Result.Merge(genreResult, movieResult);
+
+            movieResult.Value.Genres.Add(genreResult.Value);
+
+            return Result.Ok(_genresRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok().WithSuccess($"Genre '{genreResult.Value.Name}' was assigned to '{movieResult.Value.Name}'.")
+                    : Result.Fail($"Genre '{genreResult.Value.Name} was not assigned to '{movieResult.Value.Name}'."));
+        }
+
+        public Result AddGenresToMovie(IEnumerable<Guid> genresIds, Guid movieId)
+        {
+            var movieResult = GetMovie(movieId);
+            if (movieResult.IsFailed)
+                return movieResult.ToResult();
 
             var genres = genresIds.Select(id => _genresRepository.Get(id)).Where(g => g is not null);
-            movie.Genres.AddRange(genres);
+            movieResult.Value.Genres.AddRange(genres);
 
-            return _moviesRepository.SaveChanges();
+            return Result.Ok(_genresRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok().WithSuccess($"Genres were assigned to '{movieResult.Value.Name}'.")
+                    : Result.Fail($"Genre were not assigned to '{movieResult.Value.Name}'."));
         }
-
-        public bool MovieExists(Guid id) => _moviesRepository.Get(m => m.Id == id).Any();
-
-        public bool GenreExists(Guid id) => _genresRepository.Get(m => m.Id == id).Any();
-
     }
 }

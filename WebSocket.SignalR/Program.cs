@@ -14,6 +14,8 @@ builder.Services.AddIdentitySupport(builder.Configuration);
 builder.Services.AddLogging(builder.Configuration);
 builder.Services.AddInternalServices(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(AutoMapperSetup).Assembly);
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 
 var app = builder.Build();
@@ -27,6 +29,7 @@ app.UseSwaggerUI(c =>
     }
 });
 
+app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();

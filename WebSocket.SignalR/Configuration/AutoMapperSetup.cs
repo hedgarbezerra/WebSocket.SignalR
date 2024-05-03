@@ -10,7 +10,9 @@ namespace WebSocket.SignalR.Configuration
         {
             CreateMap<Movie, CreateMovieDTO>()
                 .ForMember(p => p.Genres, opt => opt.Ignore())
+                .ForMember(p => p.DurationInMinutes, f => f.MapFrom(src => src.Duration.TotalMinutes))
                 .ReverseMap()
+                .ForMember(p => p.Duration, f => f.MapFrom(src => TimeSpan.FromMinutes(src.DurationInMinutes)))
                 .ForMember(p => p.Genres, opt => opt.Ignore());
 
             CreateMap<Genre, CreateGenreDTO>()
@@ -37,7 +39,9 @@ namespace WebSocket.SignalR.Configuration
 
             CreateMap<Movie, UpdateMovieDTO>()
                 .ForMember(p => p.Genres, opt => opt.Ignore())
+                .ForMember(p => p.DurationInMinutes, f => f.MapFrom(src => src.Duration.TotalMinutes))
                 .ReverseMap()
+                .ForMember(p => p.Duration, f => f.MapFrom(src => TimeSpan.FromMinutes(src.DurationInMinutes)))
                 .ForMember(p => p.Genres, opt => opt.Ignore());
 
             CreateMap<Genre, UpdateGenreDTO>()

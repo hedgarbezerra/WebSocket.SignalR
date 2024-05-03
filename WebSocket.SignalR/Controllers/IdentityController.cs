@@ -36,38 +36,30 @@ namespace WebSocket.SignalR.Controllers
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDTO registration)
         {
-            try
+            if (!_userManager.SupportsUserEmail)
             {
-                if (!_userManager.SupportsUserEmail)
-                {
-                    throw new NotSupportedException($"{nameof(AppUser)} requires a user store with email support.");
-                }
-
-                var email = registration.Email;
-                var emailStore = (IUserEmailStore<AppUser>)_userStore;
-
-                if (string.IsNullOrEmpty(email) || !_emailAddressAttribute.IsValid(email))
-                {
-                    return BadRequest(CreateValidationProblem(IdentityResult.Failed(_userManager.ErrorDescriber.InvalidEmail(email))));
-                }
-
-                var user = new AppUser() { Birthdate = registration.Birthdate, Name = registration.Name };
-                await _userStore.SetUserNameAsync(user, email, CancellationToken.None);
-                await emailStore.SetEmailAsync(user, email, CancellationToken.None);
-                var result = await _userManager.CreateAsync(user, registration.Password);
-
-                if (!result.Succeeded)
-                {
-                    return BadRequest(CreateValidationProblem(result));
-                }
-
-                return Ok(result);
+                throw new NotSupportedException($"{nameof(AppUser)} requires a user store with email support.");
             }
-            catch (Exception ex)
+
+            var email = registration.Email;
+            var emailStore = (IUserEmailStore<AppUser>)_userStore;
+
+            if (string.IsNullOrEmpty(email) || !_emailAddressAttribute.IsValid(email))
             {
-                _logger.LogError(ex, ex.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }            
+                return BadRequest(CreateValidationProblem(IdentityResult.Failed(_userManager.ErrorDescriber.InvalidEmail(email))));
+            }
+
+            var user = new AppUser() { Birthdate = registration.Birthdate, Name = registration.Name };
+            await _userStore.SetUserNameAsync(user, email, CancellationToken.None);
+            await emailStore.SetEmailAsync(user, email, CancellationToken.None);
+            var result = await _userManager.CreateAsync(user, registration.Password);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest(CreateValidationProblem(result));
+            }
+
+            return Ok(result);
         }
 
         private static ValidationProblem CreateValidationProblem(IdentityResult result)

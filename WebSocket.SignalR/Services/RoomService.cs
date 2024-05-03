@@ -1,7 +1,10 @@
-﻿using System.Linq.Expressions;
+﻿using FluentResults;
+using Microsoft.AspNetCore.Http.HttpResults;
+using System.Linq.Expressions;
 using WebSocket.SignalR.Configuration;
 using WebSocket.SignalR.Interfaces;
 using WebSocket.SignalR.Models;
+using static WebSocket.SignalR.Data.Repository.Repositories;
 
 namespace WebSocket.SignalR.Services
 {
@@ -23,54 +26,71 @@ namespace WebSocket.SignalR.Services
             _uriService = uriService;
         }
 
-        public Guid AddRoom(Room room)
+        public Result<Guid> AddRoom(Room room)
         {
-            ArgumentNullException.ThrowIfNull(room);
+            if (room is null)
+                return Result.Fail($"The parameter '{nameof(room)}' provided cannot be null.");
 
             var insertedRoom = _roomsRepository.Add(room);
-            _roomsRepository.SaveChanges();
 
-            return insertedRoom.Id;
+            return Result.Ok(_roomsRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok(insertedRoom.Id).WithSuccess($"Room '{room.Name}' created successfully.")
+                    : Result.Fail($"Room '{room.Name}' was not created."));
         }
-
-        public bool UpdateRoom(Room room)
+        public Result UpdateRoom(Room room)
         {
-            ArgumentNullException.ThrowIfNull(room);
+            if (room is null)
+                return Result.Fail($"The parameter '{nameof(room)}' provided cannot be null.");
 
             var updatedRoom = _roomsRepository.Update(room);
 
-            return _roomsRepository.SaveChanges();
+            return Result.Ok(_roomsRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok().WithSuccess($"Room with identifier '{room.Id}' updated successfully.")
+                    : Result.Fail($"Room with identifier '{room.Id}' was not updated."));
         }
-
-        public bool DeleteRoom(Guid roomId)
+        public Result DeleteRoom(Guid roomId)
         {
-            if (roomId == Guid.Empty)
-                throw new ArgumentNullException(nameof(roomId));
+            var result = RoomExists(roomId);
+            if (result.IsFailed)
+                return result;
 
             _roomsRepository.Delete(roomId);
-            return _roomsRepository.SaveChanges();
-        }
 
-        public Room? GetRoom(Guid id)
+            return Result.Ok(_roomsRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok().WithSuccess($"Room with identifier '{roomId}' successfully deleted.")
+                    : Result.Fail($"Room with identifier '{roomId}' was not deleted."));
+        }
+        public Result RoomExists(Guid roomId)
         {
-            var room = _roomsRepository.Get(id);
+            bool roomFound = _roomsRepository.Get(m => m.Id == roomId).Any();
 
-            return room;
+            return Result.OkIf(roomFound, $"Room with identifier '{roomId}' not found.");
         }
-
-        public IReadOnlyList<Room> GetRooms()
+        public Result<Room?> GetRoom(Guid roomId)
         {
-            var rooms = _roomsRepository.Get().ToList().AsReadOnly();
-            return rooms;
-        }
+            var room = _roomsRepository.Get(roomId);
 
-        public IReadOnlyList<Room> GetRooms(Expression<Func<Room, bool>> filter)
+            return Result.Ok(room is not null)
+                .Bind(v => v ?
+                    Result.Ok(room)
+                    : Result.Fail($"Room with identifier '{roomId}' not found."));
+        }
+        public Result<List<Room>> GetRooms()
         {
-            var rooms = _roomsRepository.Get(filter).ToList().AsReadOnly();
-            return rooms;
-        }
+            var rooms = _roomsRepository.Get().ToList();
 
-        public PaginatedList<Room> GetRooms(PaginationInput pagination, string route)
+            return Result.Ok(rooms).WithSuccess($"Total count of rooms: {rooms.Count}.");
+        }
+        public Result<List<Room>> GetRooms(Expression<Func<Room, bool>> filter)
+        {
+            var rooms = _roomsRepository.Get(filter).ToList();
+
+            return Result.Ok(rooms).WithSuccess($"Total count of rooms: {rooms.Count}.");
+        }
+        public Result<PaginatedList<Room>> GetRooms(PaginationInput pagination, string route)
         {
             var rooms = _roomsRepository.Get();
             if (!string.IsNullOrEmpty(pagination.SearchTerm))
@@ -84,84 +104,109 @@ namespace WebSocket.SignalR.Services
             }
 
             var paginated = new PaginatedList<Room>(rooms, _uriService, route, pagination.Index, pagination.Size);
-            return paginated;
+            return Result.Ok(paginated).WithSuccess($"page '{paginated.PageIndex}' from '{paginated.TotalPages}' - Total itens: {paginated.TotalCount}");
         }
 
-        public Seat? GetSeat(Guid id)
+        public Result<Seat?> GetSeat(Guid id)
         {
             var seat = _seatsRepository.Get(id);
 
-            return seat;
+            return Result.Ok(seat is not null)
+                .Bind(v => v ?
+                    Result.Ok(seat)
+                    : Result.Fail($"Seat with identifier '{id}' not found."));
         }
-
-        public Seat? GetSeat(Guid roomId, int row, int column)
+        public Result<Seat?> GetSeat(Guid roomId, int row, int column)
         {
-            var room = _roomsRepository.Get(roomId);
-            if (room is null)
-                return null;
+            var roomResult = GetRoom(roomId);
+            if (roomResult.IsFailed)
+                return roomResult.ToResult();
 
-            var seat = room.GetSeat(row, column);
+            var seat = roomResult.Value.GetSeat(row, column);
 
-            return seat;
+            return Result.Ok(seat is not null)
+                .Bind(v => v ?
+                    Result.Ok(seat)
+                    : Result.Fail($"Seat with identifier at position '{row}'x'{column}' not found."));
         }
-
-        public IReadOnlyList<Seat> GetSeats(Guid roomId)
+        public Result DeleteSeat(Guid seatId)
         {
-            var room = _roomsRepository.Get(roomId);
-            if (room is null)
-                return [];
+            var seat = GetSeat(seatId);
+            if (seat.IsFailed)
+                return seat.ToResult();
 
-            return room.Seats;
-        }
-
-        public bool DeleteSeat(Guid seatId)
-        {
             _seatsRepository.Delete(seatId);
 
-            return _roomsRepository.SaveChanges();
+            return Result.Ok(_seatsRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok().WithSuccess($"Seat with identifier '{seatId}' successfully deleted.")
+                    : Result.Fail($"Seat with identifier '{seatId}' was not deleted."));
         }
 
-        public bool UpdateSeat(Seat seat)
+        public Result<Seat?> DeleteSeat(Guid roomId, int row, int column)
         {
-            ArgumentNullException.ThrowIfNull(seat);
+            var room = GetRoom(roomId);
+            if (room.IsFailed)
+                return room.ToResult();
 
-            var updatedSeat = _seatsRepository.Update(seat);
+            var seat = room.Value.GetSeat(row, column);
+            if (seat is null)
+                return Result.Fail($"Seat with identifier at position '{row}'x'{column}' not found.");
 
-            return _seatsRepository.SaveChanges();
+            room.Value.Seats.Remove(seat);
+
+            return Result.Ok(_seatsRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok().WithSuccess($"Seat with identifier '{seat.Id}' successfully deleted.")
+                    : Result.Fail($"Seat with identifier '{seat.Id}' was not deleted."));
         }
-        public bool AddSeatToRoom(Seat seat, Guid roomId)
-        {
-            ArgumentNullException.ThrowIfNull(seat);
-            var room = _roomsRepository.Get(roomId);
-            if (room is null)
-                return false;
 
+        public Result<List<Seat>> GetSeats(Guid roomId)
+        {
+            var room = GetRoom(roomId);
+            if (room.IsFailed)
+                return room.ToResult();
+
+            return Result.Ok(room.Value.Seats);
+        }
+
+        public Result AddSeatToRoom(Seat seat, Guid roomId)
+        {
+            var room = GetRoom(roomId);
+            if (room.IsFailed)
+                return room.ToResult();
+
+            room.Value.Seats.Add(seat);
+
+            return Result.Ok(_roomsRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok().WithSuccess($"Seat was assiged to the room successfully.")
+                    : Result.Fail($"Seat was not assigned to the room."));
+        }
+
+        public Result AddSeatToRoom(Guid seatId, Guid roomId)
+        {
+            var room = GetRoom(roomId);
+            var seat = GetSeat(seatId);
+            if (room.IsFailed || seat.IsFailed)
+                return Result.Merge(room, seat);
+
+            room.Value.Seats.Add(seat.Value);
+
+            return Result.Ok(_roomsRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok().WithSuccess($"Seat was assiged to the room successfully.")
+                    : Result.Fail($"Seat was not assigned to the room."));
+        }
+
+        public Result AddSeatToRoom(Seat seat, Room room)
+        {
             room.Seats.Add(seat);
 
-            return _seatsRepository.SaveChanges();
+            return Result.Ok(_roomsRepository.SaveChanges())
+                .Bind(v => v ?
+                    Result.Ok().WithSuccess($"Seat was assiged to the room successfully.")
+                    : Result.Fail($"Seat was not assigned to the room."));
         }
-        public bool AddSeatToRoom(Seat seat, Room room)
-        {
-            ArgumentNullException.ThrowIfNull(seat);
-            ArgumentNullException.ThrowIfNull(room);
-
-            room.Seats.Add(seat);
-
-            return _roomsRepository.SaveChanges();
-        }
-
-        public bool AddSeatToRoom(Guid seatId, Guid roomId)
-        {
-            var seat = _seatsRepository.Get(seatId);
-            var room = _roomsRepository.Get(roomId);
-            if (room is null || seat is null)
-                return false;
-
-            room.Seats.Add(seat);
-
-            return _seatsRepository.SaveChanges();
-        }
-
-        public bool RoomExists(Guid roomId) => _roomsRepository.Get(m => m.Id == roomId).Any();
     }
 }

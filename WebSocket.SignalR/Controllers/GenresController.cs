@@ -1,6 +1,9 @@
 ﻿using Asp.Versioning;
 using AutoMapper;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WebSocket.SignalR.Interfaces;
 using WebSocket.SignalR.Models;
@@ -13,13 +16,13 @@ namespace WebSocket.SignalR.Controllers
     [Route("api/v{version:apiVersion}/[controller]")]
     [Route("api/[controller]")]
     [ApiController]
-    public class GenresController : ControllerBase
+    public class GenresController : BaseAuthenticatedController
     {
         private readonly ILogger<GenresController> _logger;
         private readonly IMoviesService _moviesService;
         private readonly IMapper _mapper;
 
-        public GenresController(ILogger<GenresController> logger, IMoviesService moviesService, IMapper mapper)
+        public GenresController(ILogger<GenresController> logger, IMoviesService moviesService, IMapper mapper, UserManager<AppUser> userManager) : base(userManager)
         {
             ArgumentNullException.ThrowIfNull(logger, nameof(logger));
             ArgumentNullException.ThrowIfNull(moviesService, nameof(moviesService));
@@ -31,131 +34,83 @@ namespace WebSocket.SignalR.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<Genre>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Result<IEnumerable<Genre>>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Get()
         {
-            try
-            { 
-                var genres = _moviesService.GetGenres();
+            var genres = _moviesService.GetGenres();
 
-                return Ok(genres);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            return Ok(genres);
         }
 
         [HttpGet]
         [Route("{genreId:guid}")]
-        [ProducesResponseType(typeof(Genre), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Result<Genre>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Get([FromRoute] Guid genreId)
         {
-            try
-            { 
-                var genre = _moviesService.GetGenre(genreId);
-                if (genre is null)
-                    return NotFound();
+            var genre = _moviesService.GetGenre(genreId);
+            if (genre is null)
+                return NotFound();
 
-                return Ok(genre);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            return Ok(genre);
         }
 
         [HttpGet]
         [Route("pagination")]
-        [ProducesResponseType(typeof(PaginatedList<Genre>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Result<PaginatedList<Genre>>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetPaginated([FromQuery] PaginationInput pagination)
         {
-            try
-            {
-                var genres = _moviesService.GetGenres(pagination, HttpContext?.Request?.Path);
+            var genres = _moviesService.GetGenres(pagination, HttpContext?.Request?.Path);
 
-                return Ok(genres);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            return Ok(genres);
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Post([FromBody] CreateGenreDTO request)
         {
-            try
-            {
-                var genre = _mapper.Map<Genre>(request);
-                var genreId = _moviesService.AddGenre(genre);
+            var genre = _mapper.Map<Genre>(request);
+            var genreId = _moviesService.AddGenre(genre);
 
-                return Ok(genreId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            return Ok(genreId);
         }
 
         [HttpPut]
-        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Put([FromBody] UpdateGenreDTO request)
         {
-            try
-            {
-                var genreExists = _moviesService.GenreExists(request.Id);
-                if (!genreExists)
-                    return NotFound();
+            var genreExists = _moviesService.GenreExists(request.Id);
+            if (genreExists.IsFailed)
+                return NotFound(genreExists);
 
-                var genre = _mapper.Map<Genre>(request);
-                var genres = _moviesService.UpdateGenre(genre);
+            var genre = _mapper.Map<Genre>(request);
+            var genres = _moviesService.UpdateGenre(genre);
 
-                return Ok(genres);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            return Ok(genres);
         }
 
 
         [HttpDelete]
         [Route("{genreId:guid}")]
-        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Delete([FromRoute] Guid genreId)
         {
-            try
-            {
-                var genreExists = _moviesService.GenreExists(genreId);
-                if (!genreExists)
-                    return NotFound();
+            var genreExists = _moviesService.GenreExists(genreId);
+            if (genreExists.IsFailed)
+                return NotFound(genreExists);
 
-                var result = _moviesService.DeleteGenre(genreId);
+            var result = _moviesService.DeleteGenre(genreId);
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            return Ok(result);
         }
     }
 }
