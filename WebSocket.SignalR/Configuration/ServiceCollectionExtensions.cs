@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -70,8 +71,12 @@ namespace WebSocket.SignalR.Configuration
                 });
             });
 
-            services.AddIdentityApiEndpoints<AppUser>(opt => IdentityConfigurationOptions.Configure(opt))
-                .AddEntityFrameworkStores<AppDbContext>();
+            services.AddIdentityCore<AppUser>(opt => IdentityConfigurationOptions.Configure(opt))
+                .AddEntityFrameworkStores<AppDbContext>()
+                .AddApiEndpoints();
+
+            services.AddAuthentication()
+                .AddBearerToken(IdentityConstants.BearerScheme, opt => BearerTokenConfigurations.Configure(opt, configuration));
             services.AddAuthorization();
 
             return services;

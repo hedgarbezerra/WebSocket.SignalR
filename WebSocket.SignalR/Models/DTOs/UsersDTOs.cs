@@ -11,6 +11,6 @@ namespace WebSocket.SignalR.Models.DTOs
         [Required]
         public string Password { get; set; }
         [Required]
-        public DateTime Birthdate { get; set; }
+        public DateTime? Birthdate { get; set; }
     }
 }

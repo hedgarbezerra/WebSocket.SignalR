@@ -1,9 +1,11 @@
 ﻿using Asp.Versioning;
+using FluentResults;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using WebSocket.SignalR.Extensions;
 using WebSocket.SignalR.Models;
 using WebSocket.SignalR.Models.DTOs;
 
@@ -19,20 +21,20 @@ namespace WebSocket.SignalR.Controllers
 
         private readonly UserManager<AppUser> _userManager;
         private readonly IUserStore<AppUser> _userStore;
-        private readonly ILogger<IdentityController> _logger;
 
-        public IdentityController(UserManager<AppUser> userManager, IUserStore<AppUser> userStore, ILogger<IdentityController> logger)
+        public IdentityController(UserManager<AppUser> userManager, IUserStore<AppUser> userStore)
         { 
             ArgumentNullException.ThrowIfNull(userManager);
             ArgumentNullException.ThrowIfNull(userStore);
-            ArgumentNullException.ThrowIfNull(logger);
 
             _userManager = userManager;
             _userStore = userStore;
-            _logger = logger;
         }
 
         [HttpPost]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDTO registration)
         {
@@ -46,48 +48,21 @@ namespace WebSocket.SignalR.Controllers
 
             if (string.IsNullOrEmpty(email) || !_emailAddressAttribute.IsValid(email))
             {
-                return BadRequest(CreateValidationProblem(IdentityResult.Failed(_userManager.ErrorDescriber.InvalidEmail(email))));
+                var emailFailedResult = IdentityResult.Failed(_userManager.ErrorDescriber.InvalidEmail(email)).FromIdentityResult();
+                return BadRequest(emailFailedResult);
             }
 
-            var user = new AppUser() { Birthdate = registration.Birthdate, Name = registration.Name };
+            var user = new AppUser() { Birthdate = registration.Birthdate.Value, Name = registration.Name };
             await _userStore.SetUserNameAsync(user, email, CancellationToken.None);
             await emailStore.SetEmailAsync(user, email, CancellationToken.None);
             var result = await _userManager.CreateAsync(user, registration.Password);
 
             if (!result.Succeeded)
             {
-                return BadRequest(CreateValidationProblem(result));
+                return BadRequest(result.FromIdentityResult());
             }
 
-            return Ok(result);
-        }
-
-        private static ValidationProblem CreateValidationProblem(IdentityResult result)
-        {
-            // We expect a single error code and description in the normal case.
-            // This could be golfed with GroupBy and ToDictionary, but perf! :P
-            Debug.Assert(!result.Succeeded);
-            var errorDictionary = new Dictionary<string, string[]>(1);
-
-            foreach (var error in result.Errors)
-            {
-                string[] newDescriptions;
-
-                if (errorDictionary.TryGetValue(error.Code, out var descriptions))
-                {
-                    newDescriptions = new string[descriptions.Length + 1];
-                    Array.Copy(descriptions, newDescriptions, descriptions.Length);
-                    newDescriptions[descriptions.Length] = error.Description;
-                }
-                else
-                {
-                    newDescriptions = [error.Description];
-                }
-
-                errorDictionary[error.Code] = newDescriptions;
-            }
-
-            return TypedResults.ValidationProblem(errorDictionary);
+            return Created(HttpContext.Request.Path, result.FromIdentityResult());
         }
     }
 }

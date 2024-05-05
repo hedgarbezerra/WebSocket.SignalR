@@ -7,9 +7,9 @@ namespace WebSocket.SignalR.Models.DTOs
         [Required, Key]
         public Guid RoomId { get; set; }
         [Required]
-        public int Row { get; set; }
+        public int? Row { get; set; }
         [Required]
-        public int Column { get; set; }
+        public int? Column { get; set; }
         [Required]
         public bool IsHandicapAccessible { get; set; }
     }

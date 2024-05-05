@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FluentResults;
 using WebSocket.SignalR.Models;
 using WebSocket.SignalR.Models.DTOs;
 
@@ -12,7 +13,7 @@ namespace WebSocket.SignalR.Configuration
                 .ForMember(p => p.Genres, opt => opt.Ignore())
                 .ForMember(p => p.DurationInMinutes, f => f.MapFrom(src => src.Duration.TotalMinutes))
                 .ReverseMap()
-                .ForMember(p => p.Duration, f => f.MapFrom(src => TimeSpan.FromMinutes(src.DurationInMinutes)))
+                .ForMember(p => p.Duration, f => f.MapFrom(src => TimeSpan.FromMinutes(src.DurationInMinutes.Value)))
                 .ForMember(p => p.Genres, opt => opt.Ignore());
 
             CreateMap<Genre, CreateGenreDTO>()
@@ -41,7 +42,7 @@ namespace WebSocket.SignalR.Configuration
                 .ForMember(p => p.Genres, opt => opt.Ignore())
                 .ForMember(p => p.DurationInMinutes, f => f.MapFrom(src => src.Duration.TotalMinutes))
                 .ReverseMap()
-                .ForMember(p => p.Duration, f => f.MapFrom(src => TimeSpan.FromMinutes(src.DurationInMinutes)))
+                .ForMember(p => p.Duration, f => f.MapFrom(src => TimeSpan.FromMinutes(src.DurationInMinutes.Value)))
                 .ForMember(p => p.Genres, opt => opt.Ignore());
 
             CreateMap<Genre, UpdateGenreDTO>()

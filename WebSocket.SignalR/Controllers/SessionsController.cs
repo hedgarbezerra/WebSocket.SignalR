@@ -7,7 +7,7 @@ using WebSocket.SignalR.Models.DTOs;
 using WebSocket.SignalR.Models;
 using Microsoft.AspNetCore.Identity;
 using FluentResults;
-using Microsoft.AspNetCore.Http.HttpResults;
+using WebSocket.SignalR.Extensions;
 
 namespace WebSocket.SignalR.Controllers
 {
@@ -18,103 +18,94 @@ namespace WebSocket.SignalR.Controllers
     [ApiController]
     public class SessionsController : BaseAuthenticatedController
     {
-        private readonly ILogger<SessionsController> _logger;
         private readonly ISessionsService _sessionsService;
         private readonly IMapper _mapper;
 
-        public SessionsController(ILogger<SessionsController> logger, ISessionsService sessionsService, IMapper mapper, UserManager<AppUser> userManager) : base(userManager)
+        public SessionsController(ISessionsService sessionsService, IMapper mapper, UserManager<AppUser> userManager) : base(userManager)
         {
-            ArgumentNullException.ThrowIfNull(logger, nameof(logger));
             ArgumentNullException.ThrowIfNull(sessionsService, nameof(sessionsService));
             ArgumentNullException.ThrowIfNull(mapper, nameof(mapper));
 
-            _logger = logger;
             _sessionsService = sessionsService;
             _mapper = mapper;
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(Result<IEnumerable<Session>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ResultDTO<IEnumerable<Session>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult Get()
         {
-            var sessions = _sessionsService.GetSessions();
+            var sessions = _sessionsService.GetSessions().FromResult();
 
             return Ok(sessions);
         }
 
         [HttpGet]
         [Route("{sessionId:guid}")]
-        [ProducesResponseType(typeof(Result<Session>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ResultDTO<Session>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult Get([FromRoute]Guid sessionId)
         {
-            var session = _sessionsService.GetSession(sessionId);
-            if (session is null)
-                return NotFound();
+            var session = _sessionsService.GetSession(sessionId).FromResult();
+            if (!session.Success)
+                return NotFound(session);
 
             return Ok(session);
         }
 
         [HttpGet]
         [Route("pagination")]
-        [ProducesResponseType(typeof(Result<PaginatedList<Session>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ResultDTO<PaginatedList<Session>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult GetPaginated([FromQuery] PaginationInput pagination)
         {
-            var sessions = _sessionsService.GetSessions(pagination, HttpContext?.Request?.Path);
+            var sessions = _sessionsService.GetSessions(pagination, HttpContext?.Request?.Path).FromResult();
 
             return Ok(sessions);
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO<Guid>), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult Post([FromBody] CreateSessionDTO request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var session = _mapper.Map<Session>(request);
-            var sessionId = _sessionsService.AddSession(session);
+            var sessionId = _sessionsService.AddSession(session).FromResult();
 
-            return Ok(sessionId);
+            return Created(HttpContext.Request.Path, sessionId);
         }
 
         [HttpPut]
-        [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult Put([FromBody] UpdateSessionDTO request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var sessionExists = _sessionsService.SessionExists(request.Id);
-            if (sessionExists.IsFailed)
+            var sessionExists = _sessionsService.SessionExists(request.Id).FromResult();
+            if (!sessionExists.Success)
                 return NotFound(sessionExists);
 
             var session = _mapper.Map<Session>(request);
             var result = _sessionsService.UpdateSession(session);
 
-            return Ok(result);
+            return Ok(result.FromResult());
         }
 
         [HttpDelete]
         [Route("{sessionId:guid}")]
-        [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult Delete([FromRoute] Guid sessionId)
         {
-            var sessionExists = _sessionsService.SessionExists(sessionId);
-            if (!sessionExists.IsSuccess)
+            var sessionExists = _sessionsService.SessionExists(sessionId).FromResult();
+            if (!sessionExists.Success)
                 return NotFound(sessionExists);
 
-            var result = _sessionsService.DeleteSession(sessionId);
+            var result = _sessionsService.DeleteSession(sessionId).FromResult();
 
             return Ok(result);
         }
@@ -122,26 +113,24 @@ namespace WebSocket.SignalR.Controllers
 
         [HttpPost]
         [Route("{sessionId:guid}/seat")]
-        [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult AssignSeat([FromRoute] Guid sessionId, [FromBody] AssignSeatToUserDTO request)
         {
             var user = GetAuthentcatedUser();
-            var result = _sessionsService.AssignSeatToUserSession(request.SeatId, user.Id, sessionId);
+            var result = _sessionsService.AssignSeatToUserSession(request.SeatId, user.Id, sessionId).FromResult();
 
             return Ok(result);
         }
 
         [HttpPost]
         [Route("{sessionId:guid}/seats")]
-        [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult AssignSeats([FromRoute] Guid sessionId, [FromBody] AssignMultipleSeatsToUserDTO request)
         {
             var user = GetAuthentcatedUser();
-            var result = _sessionsService.AssignSeatToUserSession(user.Id, sessionId, request.SeatsIds);
+            var result = _sessionsService.AssignSeatToUserSession(user.Id, sessionId, request.SeatsIds).FromResult();
 
             return Ok(result);
         }

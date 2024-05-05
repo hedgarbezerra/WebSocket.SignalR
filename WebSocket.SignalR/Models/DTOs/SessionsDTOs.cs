@@ -11,7 +11,7 @@ namespace WebSocket.SignalR.Models.DTOs
         [Required, MaxLength(255)]
         public string Language { get; set; }
         [Required]
-        public DateTime Date { get; set; }
+        public DateTime? Date { get; set; }
     }
     public record UpdateSessionDTO : CreateSessionDTO
     {

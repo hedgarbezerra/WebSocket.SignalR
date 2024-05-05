@@ -9,14 +9,14 @@ namespace WebSocket.SignalR.Models.DTOs
         [Required]
         public string Sinopsys { get; set; }
         [Required]
-        public int Classification { get; set; }
+        public int? Classification { get; set; }
         [Required]
         public string DirectorName { get; set; }
         [Required]
-        public double DurationInMinutes { get; set; }
+        public double? DurationInMinutes { get; set; }
 
         [Required]
-        public DateTime Release { get; set; }
+        public DateTime? Release { get; set; }
         public List<string> Starring { get; set; } = new List<string>();
         public List<Guid> Genres { get; set; } = new List<Guid>();
     }

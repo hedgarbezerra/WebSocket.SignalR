@@ -35,7 +35,7 @@ namespace WebSocket.SignalR.Services
 
             return Result.Ok(_roomsRepository.SaveChanges())
                 .Bind(v => v ?
-                    Result.Ok(insertedRoom.Id).WithSuccess($"Room '{room.Name}' created successfully.")
+                    Result.Ok(insertedRoom.Id).WithSuccess($"Room '{room.Name}' created with identifier '{room.Id}'.")
                     : Result.Fail($"Room '{room.Name}' was not created."));
         }
         public Result UpdateRoom(Room room)
@@ -170,42 +170,29 @@ namespace WebSocket.SignalR.Services
             return Result.Ok(room.Value.Seats);
         }
 
-        public Result AddSeatToRoom(Seat seat, Guid roomId)
+        //TODO: utilizar o seat repo e adicionar o assento ao repositório antes de adicionar à sala
+        public Result AddSeat(Seat seat, Guid roomId)
         {
             var room = GetRoom(roomId);
             if (room.IsFailed)
                 return room.ToResult();
 
-            room.Value.Seats.Add(seat);
+            var seatInserted = _seatsRepository.Add(seat);
+            room.Value.Seats.Add(seatInserted);
 
             return Result.Ok(_roomsRepository.SaveChanges())
                 .Bind(v => v ?
-                    Result.Ok().WithSuccess($"Seat was assiged to the room successfully.")
+                    Result.Ok().WithSuccess($"Seat was assiged to the room '{room.Value.Name}' successfully.")
                     : Result.Fail($"Seat was not assigned to the room."));
         }
 
-        public Result AddSeatToRoom(Guid seatId, Guid roomId)
-        {
-            var room = GetRoom(roomId);
-            var seat = GetSeat(seatId);
-            if (room.IsFailed || seat.IsFailed)
-                return Result.Merge(room, seat);
-
-            room.Value.Seats.Add(seat.Value);
-
-            return Result.Ok(_roomsRepository.SaveChanges())
-                .Bind(v => v ?
-                    Result.Ok().WithSuccess($"Seat was assiged to the room successfully.")
-                    : Result.Fail($"Seat was not assigned to the room."));
-        }
-
-        public Result AddSeatToRoom(Seat seat, Room room)
+        public Result AddSeat(Seat seat, Room room)
         {
             room.Seats.Add(seat);
 
             return Result.Ok(_roomsRepository.SaveChanges())
                 .Bind(v => v ?
-                    Result.Ok().WithSuccess($"Seat was assiged to the room successfully.")
+                    Result.Ok().WithSuccess($"Seat was assiged to the room '{room.Name}' successfully.")
                     : Result.Fail($"Seat was not assigned to the room."));
         }
     }

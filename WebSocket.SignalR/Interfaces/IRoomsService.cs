@@ -15,14 +15,13 @@ namespace WebSocket.SignalR.Interfaces
         Result DeleteRoom(Guid roomId);
         Result RoomExists(Guid roomId);
 
+        Result AddSeat(Seat seat, Guid roomId);
+        Result AddSeat(Seat seat, Room room);
         Result<Seat?> GetSeat(Guid id);
         Result<Seat?> GetSeat(Guid roomId, int row, int column);
         Result DeleteSeat(Guid seatId);
         Result<Seat?> DeleteSeat(Guid roomId, int row, int column);
         Result<List<Seat>> GetSeats(Guid roomId);
-        Result AddSeatToRoom(Seat seat, Guid roomId);
-        Result AddSeatToRoom(Guid seatId, Guid roomId);
-        Result AddSeatToRoom(Seat seat, Room room);
 
     }
 }

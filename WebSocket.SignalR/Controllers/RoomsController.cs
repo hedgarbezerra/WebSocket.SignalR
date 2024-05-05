@@ -7,7 +7,7 @@ using WebSocket.SignalR.Models.DTOs;
 using WebSocket.SignalR.Models;
 using Microsoft.AspNetCore.Identity;
 using FluentResults;
-using Microsoft.AspNetCore.Http.HttpResults;
+using WebSocket.SignalR.Extensions;
 
 
 namespace WebSocket.SignalR.Controllers
@@ -19,97 +19,94 @@ namespace WebSocket.SignalR.Controllers
     [ApiController]
     public class RoomsController : BaseAuthenticatedController
     {
-        private readonly ILogger<RoomsController> _logger;
         private readonly IRoomsService _roomsService;
         private readonly IMapper _mapper;
 
-        public RoomsController(ILogger<RoomsController> logger, IRoomsService roomsService, IMapper mapper, UserManager<AppUser> userManager) : base(userManager)
+        public RoomsController(IRoomsService roomsService, IMapper mapper, UserManager<AppUser> userManager) : base(userManager)
         {
-            ArgumentNullException.ThrowIfNull(logger, nameof(logger));
             ArgumentNullException.ThrowIfNull(roomsService, nameof(roomsService));
             ArgumentNullException.ThrowIfNull(mapper, nameof(mapper));
 
-            _logger = logger;
             _roomsService = roomsService;
             _mapper = mapper;
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(Result<IEnumerable<Room>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ResultDTO<IEnumerable<Room>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult Get()
         {
-            var rooms = _roomsService.GetRooms();
+            var rooms = _roomsService.GetRooms().FromResult();
 
             return Ok(rooms);
         }
 
         [HttpGet]
         [Route("{roomId:guid}")]
-        [ProducesResponseType(typeof(Result<Room>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ResultDTO<Room>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult Get([FromRoute] Guid roomId)
         {
-            var room = _roomsService.GetRoom(roomId);
-            if (room is null)
-                return NotFound();
+            var room = _roomsService.GetRoom(roomId).FromResult();
+            if (!room.Success)
+                return NotFound(room);
 
             return Ok(room);
         }
 
         [HttpGet]
         [Route("pagination")]
-        [ProducesResponseType(typeof(Result<PaginatedList<Room>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ResultDTO<PaginatedList<Room>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult GetPaginated([FromQuery] PaginationInput pagination)
         {
-            var rooms = _roomsService.GetRooms(pagination, HttpContext?.Request?.Path);
+            var rooms = _roomsService.GetRooms(pagination, HttpContext?.Request?.Path).FromResult();
 
             return Ok(rooms);
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(Result<Guid>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO<Guid>), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult Post([FromBody] CreateRoomDTO request)
         {
             var room = _mapper.Map<Room>(request);
-            var roomId = _roomsService.AddRoom(room);
+            var roomId = _roomsService.AddRoom(room).FromResult();
 
-            return Ok(roomId);
+            return Created(HttpContext.Request.Path, roomId);
         }
 
         [HttpPut]
-        [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult Put([FromBody] UpdateRoomDTO request)
         {
-            var roomExists = _roomsService.RoomExists(request.Id);
-            if (roomExists.IsFailed)
+            var roomExists = _roomsService.RoomExists(request.Id).FromResult();
+            if (!roomExists.Success)
                 return NotFound(roomExists);
 
             var room = _mapper.Map<Room>(request);
-            var rooms = _roomsService.UpdateRoom(room);
+            var rooms = _roomsService.UpdateRoom(room).FromResult();
 
             return Ok(rooms);
         }
 
         [HttpDelete]
         [Route("{roomId:guid}")]
-        [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult Delete([FromRoute] Guid roomId)
         {
-            var roomExists = _roomsService.RoomExists(roomId);
-            if (roomExists.IsFailed)
+            var roomExists = _roomsService.RoomExists(roomId).FromResult();
+            if (roomExists.Success)
                 return NotFound(roomExists);
 
-            var result = _roomsService.DeleteRoom(roomId);
+            var result = _roomsService.DeleteRoom(roomId).FromResult();
 
             return Ok(result);
         }

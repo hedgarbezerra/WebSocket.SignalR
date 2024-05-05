@@ -36,12 +36,11 @@ namespace WebSocket.SignalR.Services
 
             return Result.Ok(_moviesRepository.SaveChanges())
                 .Bind(v => v ?
-                    Result.Ok(insertedMovie.Id).WithSuccess($"Movie '{movie.Name}' created successfully.")
+                    Result.Ok(insertedMovie.Id).WithSuccess($"Movie '{movie.Name}' created with identifier '{movie.Id}'.")
                     : Result.Fail($"Movie '{movie.Name}' was not created."));
         }
         public Result<Guid> AddMovie(Movie movie, IEnumerable<Guid> genresIds = null!)
         {
-            throw new Exception("ashujsauhj");
             if (movie is null)
                 return Result.Fail($"The parameter '{nameof(movie)}' provided cannot be null.");
 
@@ -150,7 +149,7 @@ namespace WebSocket.SignalR.Services
             _genresRepository.SaveChanges();
 
             return Result.Ok(insertedMovie.Id)
-                .WithSuccess(new Success($"The genre at '{genre.Name}' was created with identifier {insertedMovie.Id}"));
+                .WithSuccess(new Success($"The genre at '{genre.Name}' was created with identifier '{insertedMovie.Id}'"));
         }
         public Result UpdateGenre(Genre genre)
         {

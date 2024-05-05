@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 using WebSocket.SignalR;
 using WebSocket.SignalR.Configuration;
 using WebSocket.SignalR.Models;
@@ -7,7 +9,19 @@ using WebSocket.SignalR.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(ops =>
+    {
+        ops.JsonSerializerOptions.PropertyNamingPolicy = null;
+        ops.JsonSerializerOptions.IgnoreReadOnlyProperties = false;
+        ops.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        ops.JsonSerializerOptions.WriteIndented = true;
+        ops.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        ops.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+        ops.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        ops.JsonSerializerOptions.MaxDepth = 64;
+        ops.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddVersioning(builder.Configuration);
 builder.Services.AddIdentitySupport(builder.Configuration);
@@ -34,9 +48,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
 app.UseHttpsRedirection();
+app.UseCors();
+
 app.MapGroup("api/identity")
     .MapIdentityApi<AppUser>();
-
 app.MapControllers();
 
 app.Run();

@@ -1,6 +1,8 @@
-﻿using FluentResults;
+﻿using Azure.Core;
+using FluentResults;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using WebSocket.SignalR.Extensions;
 
 namespace WebSocket.SignalR.Configuration
 {
@@ -17,12 +19,10 @@ namespace WebSocket.SignalR.Configuration
         {
             _logger.LogError(exception, "Exception occurred: {Message} and was caught by global handler.", exception.Message);
 
-            var error = new Error($"Something happened while processing your [{httpContext.Request.Method}] request to '{httpContext.Request.Path}'.")
-                .CausedBy(exception.Message, exception)
-                .WithMetadata("Occurred at", DateTime.UtcNow)
-                .WithMetadata("Method", httpContext.Request.Method);
+            string requestedUri = string.Concat(httpContext.Request?.Scheme, "://", httpContext.Request?.Host.ToUriComponent());
+            var error = new Error($"Something happened while processing your [{httpContext.Request?.Method}] request to '{requestedUri}'.");
 
-            var result = Result.Fail(error);
+            var result = Result.Fail(error).FromResult();
 
             httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
