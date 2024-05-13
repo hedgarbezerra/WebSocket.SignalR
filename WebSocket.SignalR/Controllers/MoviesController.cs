@@ -88,7 +88,7 @@ namespace WebSocket.SignalR.Controllers
                 return NotFound(movieExists);
 
             var movie = _mapper.Map<Movie>(request);
-            var movies = _moviesService.UpdateMovie(movie).FromResult();
+            var movies = _moviesService.UpdateMovie(movie, request.Genres).FromResult();
 
             return Ok(movies);
         }

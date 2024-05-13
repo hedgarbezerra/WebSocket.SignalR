@@ -103,10 +103,76 @@ namespace WebSocket.SignalR.Controllers
         public IActionResult Delete([FromRoute] Guid roomId)
         {
             var roomExists = _roomsService.RoomExists(roomId).FromResult();
-            if (roomExists.Success)
+            if (!roomExists.Success)
                 return NotFound(roomExists);
 
             var result = _roomsService.DeleteRoom(roomId).FromResult();
+
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route("{roomId:guid}/seats")]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
+        public IActionResult GetSeats([FromRoute] Guid roomId)
+        {
+            var roomExists = _roomsService.RoomExists(roomId).FromResult();
+            if (!roomExists.Success)
+                return NotFound(roomExists);
+
+            var result = _roomsService.GetSeats(roomId).FromResult();
+
+            return Ok(result);
+        }
+
+        [HttpPost]
+        [Route("{roomId:guid}/seats")]
+        [ProducesResponseType(typeof(ResultDTO<Guid>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
+        public IActionResult AddSeat([FromRoute] Guid roomId, [FromBody] CreateSeatDTO seatDto)
+        {
+            var roomExists = _roomsService.RoomExists(roomId).FromResult();
+            if (!roomExists.Success)
+                return NotFound(roomExists);
+
+            var seat = _mapper.Map<Seat>(seatDto);
+            var result = _roomsService.AddSeat(seat, roomId).FromResult();
+
+            return Ok(result);
+        }
+
+        [HttpDelete]
+        [Route("{roomId:guid}/seats")]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
+        public IActionResult RemoveSeat([FromRoute] Guid roomId, [FromQuery] int row, [FromQuery] int column)
+        {
+            var roomExists = _roomsService.RoomExists(roomId).FromResult();
+            if (!roomExists.Success)
+                return NotFound(roomExists);
+
+            var result = _roomsService.DeleteSeat(roomId, row, column).FromResult();
+
+            return Ok(result);
+        }
+
+
+        [HttpDelete]
+        [Route("{roomId:guid}/seats/{seatId:guid}")]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status500InternalServerError)]
+        public IActionResult RemoveSeat([FromRoute] Guid roomId, [FromRoute] Guid seatId)
+        {
+            var roomExists = _roomsService.RoomExists(roomId).FromResult();
+            if (!roomExists.Success)
+                return NotFound(roomExists);
+
+            var result = _roomsService.DeleteSeat(seatId).FromResult();
 
             return Ok(result);
         }

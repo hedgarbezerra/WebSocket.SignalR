@@ -15,8 +15,10 @@ namespace WebSocket.SignalR.Interfaces
         Result SessionExists(Guid sessionId);
         Result UpdateSession(Session session);
         Result DeleteSession(Guid sessionId);
-        Result AssignSeatToUserSession(Seat seat, AppUser user, Session session);
-        Result AssignSeatToUserSession(Guid seatId, Guid userId, Guid sessionId);
-        Result AssignSeatToUserSession(Guid userId, Guid sessionId, IEnumerable<Guid> seatsIds);
+        Result AssignSeatToUserSession(Seat seat, Session session, AppUser user);
+        Result AssignSeatToUserSession(Guid seatId, Guid sessionId, AppUser user);
+        Result AssignSeatToUserSession(Guid sessionId, IEnumerable<Guid> seatsIds, AppUser user);
+        Result<List<SeatTaken>> GetSeatsTaken(Guid sessionId);
+        Result<List<Seat>> GetSeatsEmpty(Guid sessionId);
     }
 }

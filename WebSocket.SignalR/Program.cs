@@ -5,6 +5,7 @@ using System.Text.Json;
 using WebSocket.SignalR;
 using WebSocket.SignalR.Configuration;
 using WebSocket.SignalR.Models;
+using WebSocket.SignalR.Configuration.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,6 @@ builder.Services.AddControllers()
         ops.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         ops.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
         ops.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        ops.JsonSerializerOptions.MaxDepth = 64;
         ops.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
 builder.Services.AddHttpContextAccessor();

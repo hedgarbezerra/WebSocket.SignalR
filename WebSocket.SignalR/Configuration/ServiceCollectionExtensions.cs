@@ -16,19 +16,22 @@ namespace WebSocket.SignalR.Configuration
 {
     public static class ServiceCollectionExtensions
     {
-        //public static IServiceCollection AddIdentitySupportz(this IServiceCollection services, IConfiguration configuration);
         public static IServiceCollection AddLogging(this IServiceCollection services, IConfiguration configuration)
         {
             var context = services.BuildServiceProvider().GetRequiredService<IWebHostEnvironment>();
             services.AddSerilog(opt =>
             {
                 opt.Enrich.FromLogContext();
-                opt.WriteTo.File(Path.Combine(context.WebRootPath, "logs", "diagnostics.txt"));
-                opt.WriteTo.File(new RenderedCompactJsonFormatter(), Path.Combine(context.WebRootPath, "jsonlogs", "diagnostics.json"),
-                rollingInterval: RollingInterval.Minute,
-                fileSizeLimitBytes: 10 * 1024 * 1024,
-                rollOnFileSizeLimit: true,
-                flushToDiskInterval: TimeSpan.FromSeconds(1));
+                opt.WriteTo.File(Path.Combine(context.WebRootPath, "logs", "diagnostics-.txt"),
+                    rollingInterval: RollingInterval.Minute,
+                    fileSizeLimitBytes: 10 * 1024 * 1024,
+                    rollOnFileSizeLimit: true,
+                    flushToDiskInterval: TimeSpan.FromSeconds(1));
+                opt.WriteTo.File(new RenderedCompactJsonFormatter(), Path.Combine(context.WebRootPath, "jsonlogs", "diagnostics-.json"),
+                    rollingInterval: RollingInterval.Minute,
+                    fileSizeLimitBytes: 10 * 1024 * 1024,
+                    rollOnFileSizeLimit: true,
+                    flushToDiskInterval: TimeSpan.FromSeconds(1));
             });
 
             return services;

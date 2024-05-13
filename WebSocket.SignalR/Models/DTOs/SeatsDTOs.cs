@@ -4,8 +4,6 @@ namespace WebSocket.SignalR.Models.DTOs
 {
     public record CreateSeatDTO
     {
-        [Required, Key]
-        public Guid RoomId { get; set; }
         [Required]
         public int? Row { get; set; }
         [Required]

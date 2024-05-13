@@ -167,10 +167,9 @@ namespace WebSocket.SignalR.Services
             if (room.IsFailed)
                 return room.ToResult();
 
-            return Result.Ok(room.Value.Seats);
+            return Result.Ok(room.Value.Seats).WithSuccess($"Total of {room.Value.Seats.Count} seats for the room '{room.Value.Name}'");
         }
 
-        //TODO: utilizar o seat repo e adicionar o assento ao repositório antes de adicionar à sala
         public Result AddSeat(Seat seat, Guid roomId)
         {
             var room = GetRoom(roomId);
@@ -188,7 +187,8 @@ namespace WebSocket.SignalR.Services
 
         public Result AddSeat(Seat seat, Room room)
         {
-            room.Seats.Add(seat);
+            var seatInserted = _seatsRepository.Add(seat);
+            room.Seats.Add(seatInserted);
 
             return Result.Ok(_roomsRepository.SaveChanges())
                 .Bind(v => v ?

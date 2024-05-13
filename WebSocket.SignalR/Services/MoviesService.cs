@@ -56,18 +56,7 @@ namespace WebSocket.SignalR.Services
                     Result.Ok(insertedMovie.Id).WithSuccess($"Movie '{movie.Name}' created successfully.")
                     : Result.Fail($"Movie '{movie.Name}' was not created."));
         }
-        public Result UpdateMovie(Movie movie)
-        {
-            if (movie is null)
-                return Result.Fail($"The parameter '{nameof(movie)}' provided cannot be null.");
 
-            var updatedMovie = _moviesRepository.Update(movie);
-
-            return Result.Ok(_moviesRepository.SaveChanges())
-                .Bind(v => v ?
-                    Result.Ok().WithSuccess($"Movie '{movie.Name}' updated successfully.")
-                    : Result.Fail($"Movie '{movie.Name}' was not updated."));
-        }
         public Result UpdateMovie(Movie movie, IEnumerable<Guid> genresIds = null!)
         {
             if (movie is null)
@@ -78,6 +67,7 @@ namespace WebSocket.SignalR.Services
                 var genres = genresIds.Select(id => _genresRepository.Get(id)).Where(g => g is not null).ToList();
                 movie.Genres = genres;
             }
+            _moviesRepository.Update(movie);
 
             return Result.Ok(_moviesRepository.SaveChanges())
                 .Bind(v => v ?
@@ -238,6 +228,9 @@ namespace WebSocket.SignalR.Services
             if (result.IsFailed)
                 return result;
 
+            if (GenreExists(genre.Id).IsFailed)
+                _genresRepository.Add(genre);
+
             movie.Genres.Add(genre);
 
             return Result.Ok(_genresRepository.SaveChanges())
@@ -253,6 +246,9 @@ namespace WebSocket.SignalR.Services
             if (movieResult.IsFailed || genreResult.IsFailed)
                 return Result.Merge(genreResult, movieResult);
 
+            if (movieResult.Value.Genres.Any(g => g.Id == genreId))
+                return Result.Fail($"Genre '{genreResult.Value}' already associated with the movie '{movieResult.Value.Name}'.");
+
             movieResult.Value.Genres.Add(genreResult.Value);
 
             return Result.Ok(_genresRepository.SaveChanges())
@@ -267,7 +263,7 @@ namespace WebSocket.SignalR.Services
             if (movieResult.IsFailed)
                 return movieResult.ToResult();
 
-            var genres = genresIds.Select(id => _genresRepository.Get(id)).Where(g => g is not null);
+            var genres = genresIds.Select(_genresRepository.Get).Where(g => g is not null);
             movieResult.Value.Genres.AddRange(genres);
 
             return Result.Ok(_genresRepository.SaveChanges())

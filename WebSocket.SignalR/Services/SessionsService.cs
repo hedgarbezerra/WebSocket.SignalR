@@ -4,29 +4,36 @@ using System.Linq.Expressions;
 using WebSocket.SignalR.Configuration;
 using WebSocket.SignalR.Interfaces;
 using WebSocket.SignalR.Models;
-using static WebSocket.SignalR.Data.Repository.Repositories;
 
 namespace WebSocket.SignalR.Services
 {
     [BindInterface(typeof(ISessionsService))]
     public class SessionsService : ISessionsService
     {
+        private const string defaultDateFormat = "dd/MM/yyyy 'at' HH:mm";
+
         private readonly IRepository<Session> _sessionsRepository;
         private readonly IRepository<SeatTaken> _seatsRepository;
         private readonly IUriService _uriService;
         private readonly UserManager<AppUser> _userManager;
+        private readonly IMoviesService _moviesService;
+        private readonly IRoomsService _roomsService;
 
-
-        public SessionsService(IRepository<Session> sessionsRepository, IRepository<SeatTaken> seatsRepository, IUriService uriService, UserManager<AppUser> userManager)
+        public SessionsService(IRepository<Session> sessionsRepository, IRepository<SeatTaken> seatsRepository,
+            IUriService uriService, UserManager<AppUser> userManager, IMoviesService moviesService, IRoomsService roomsService)
         {
             ArgumentNullException.ThrowIfNull(sessionsRepository, nameof(sessionsRepository));
             ArgumentNullException.ThrowIfNull(seatsRepository, nameof(seatsRepository));
             ArgumentNullException.ThrowIfNull(uriService, nameof(uriService));
+            ArgumentNullException.ThrowIfNull(moviesService, nameof(moviesService));
+            ArgumentNullException.ThrowIfNull(roomsService, nameof(roomsService));
 
             _sessionsRepository = sessionsRepository;
             _seatsRepository = seatsRepository;
             _uriService = uriService;
             _userManager = userManager;
+            _moviesService = moviesService;
+            _roomsService = roomsService;
         }
 
         public Result<Guid> AddSession(Session session)
@@ -34,18 +41,35 @@ namespace WebSocket.SignalR.Services
             if (session is null)
                 return Result.Fail($"The parameter '{nameof(session)}' provided cannot be null.");
 
-            var insertedSession = _sessionsRepository.Add(session);
-            
+            var resultMovie = _moviesService.GetMovie(session.MovieId);
+            var resultRoom = _roomsService.GetRoom(session.RoomId);
+            var resultValidations = Result.Merge(resultMovie.ToResult(), resultRoom.ToResult());
+            if(resultValidations.IsFailed)
+                return resultValidations;
+
+            bool existingSessionInRoom = _sessionsRepository.Get(s => s.RoomId == session.RoomId &&
+                (s.Date >= session.Date && s.Date <= session.Date.AddMinutes(resultMovie.ValueOrDefault.Duration.TotalMinutes)))
+                .Any();
+            if (existingSessionInRoom)
+                return Result.Fail($"The room '{resultRoom.Value.Name}' won't be available at {session.Date.ToString(defaultDateFormat)}");
+
+            var insertedSession = _sessionsRepository.Add(session);            
 
             return Result.Ok(_sessionsRepository.SaveChanges())
                 .Bind(v => v ?
-                    Result.Ok().WithSuccess($"The session at '{session.Date.ToString("U")}' was created with identifier '{insertedSession.Id}'.")
-                    : Result.Fail($"The session at '{session.Date.ToString("U")}' was not created."));
+                    Result.Ok(insertedSession.Id).WithSuccess($"The session at '{session.Date.ToString(defaultDateFormat)}' was created with identifier '{insertedSession.Id}'.")
+                    : Result.Fail($"The session at '{session.Date.ToString(defaultDateFormat)}' was not created."));
         }
         public Result UpdateSession(Session session)
         {
             if (session is null)
                 return Result.Fail($"The parameter '{nameof(session)}' provided cannot be null.");
+
+            var resultMovieExists = _moviesService.MovieExists(session.MovieId);
+            var resultRoomExists = _roomsService.RoomExists(session.RoomId);
+            var resultValidations = Result.Merge(resultMovieExists, resultRoomExists);
+            if (resultValidations.IsFailed)
+                return resultValidations;
 
             var updatedSession = _sessionsRepository.Update(session);
 
@@ -117,7 +141,7 @@ namespace WebSocket.SignalR.Services
             return Result.Ok(sessions);
         }
 
-        public Result AssignSeatToUserSession(Seat seat, AppUser user, Session session)
+        public Result AssignSeatToUserSession(Seat seat, Session session, AppUser user)
         {
             var result = Result.Ok();
             if (seat is null)
@@ -146,13 +170,13 @@ namespace WebSocket.SignalR.Services
                     Result.Ok().WithSuccess($"Seat was assigned to the user '{user.Name}' successfully.")
                     : Result.Fail($"Seat was not assigned to the user '{user.Name}'."));
         }
-        public Result AssignSeatToUserSession(Guid seatId, Guid userId, Guid sessionId)
+        public Result AssignSeatToUserSession(Guid seatId, Guid sessionId, AppUser user)
         {
             var result = Result.Ok();
             if (seatId == Guid.Empty)
                 result.WithError($"The parameter '{nameof(seatId)}' cannot be null or empty.");
-            if (userId == Guid.Empty)
-                result.WithError($"The parameter '{nameof(userId)}' cannot be null or empty.");
+            if (user is null)
+                result.WithError($"The parameter '{nameof(user)}' cannot be null or empty.");
             if (sessionId == Guid.Empty)
                 result.WithError($"The parameter '{nameof(sessionId)}' cannot be null or empty.");
 
@@ -167,11 +191,10 @@ namespace WebSocket.SignalR.Services
             if (sessionResult.IsFailed)
                 return sessionResult.ToResult();
 
-            var user = _userManager.Users.FirstOrDefault(u => u.Id == userId);
             if(!IsUserOfAge(user, sessionResult.Value))
-                return Result.Fail("The users age is lower then recommended.");
+                return Result.Fail("The users age is lower than recommended.");
 
-            var seatTaken = SeatTaken.Create(userId, sessionId, seatId);
+            var seatTaken = SeatTaken.Create(user.Id, sessionId, seatId);
 
             _seatsRepository.Add(seatTaken);
 
@@ -180,13 +203,14 @@ namespace WebSocket.SignalR.Services
                     Result.Ok().WithSuccess($"Seat was assigned to the user '{user.Name}' successfully.")
                     : Result.Fail($"Seat was not assigned to the user '{user.Name}'."));
         }
-        public Result AssignSeatToUserSession(Guid userId, Guid sessionId, IEnumerable<Guid> seatsIds)
+
+        public Result AssignSeatToUserSession(Guid sessionId, IEnumerable<Guid> seatsIds, AppUser user)
         {
             var result = Result.Ok();
             if (!seatsIds.Any())
                 result.WithError($"The parameter '{nameof(seatsIds)}' cannot be null or empty.");
-            if (userId == Guid.Empty)
-                result.WithError($"The parameter '{nameof(userId)}' cannot be null or empty.");
+            if (user is null)
+                result.WithError($"The parameter '{nameof(user)}' cannot be null or empty.");
             if (sessionId == Guid.Empty)
                 result.WithError($"The parameter '{nameof(sessionId)}' cannot be null or empty.");
 
@@ -197,7 +221,6 @@ namespace WebSocket.SignalR.Services
             if (sessionResult.IsFailed)
                 return sessionResult.ToResult();
 
-            var user = _userManager.Users.FirstOrDefault(u => u.Id == userId);
             if (!IsUserOfAge(user, sessionResult.Value))
                 return Result.Fail("The users age is lower then recommended.");
 
@@ -205,7 +228,7 @@ namespace WebSocket.SignalR.Services
             if (takenSeats.Any())
                 return Result.Fail("Some of the seats may have been taking, unable to proceed.");
 
-            var seatsTakenCreated = seatsIds.Select(seatId => SeatTaken.Create(userId, sessionId, seatId));
+            var seatsTakenCreated = seatsIds.Select(seatId => SeatTaken.Create(user.Id, sessionId, seatId));
 
             _seatsRepository.AddRange(seatsTakenCreated);
 
@@ -215,12 +238,32 @@ namespace WebSocket.SignalR.Services
                     : Result.Fail($"Seat was not assigned to the user '{user.Name}'."));
         }
 
+        public Result<List<SeatTaken>> GetSeatsTaken(Guid sessionId)
+        {
+            var session = GetSession(sessionId);
+
+            return Result.Ok(session.Value.SeatsTaken)
+                .WithSuccess($"Total count of seats taken: {session.Value.SeatsTaken.Count}");
+        }
+
+        public Result<List<Seat>> GetSeatsEmpty(Guid sessionId)
+        {
+            var session = GetSession(sessionId);
+            if (session.IsFailed)
+                return session.ToResult();
+
+            var room = session.ValueOrDefault.Room;
+            var availableSeats = room.Seats.Where(s => !session.ValueOrDefault.SeatsTaken.Exists(st => st.SeatId == s.Id));
+            
+            return Result.Ok(availableSeats.ToList())
+                .WithSuccess($"Total count of seats available: {availableSeats.Count()}");
+        }
+
         private bool IsUserOfAge(AppUser user, Session session)
         {
             DateTime minClassificationBirthdate = DateTime.Now.AddYears(-session.Movie.Classification);
 
-            return user.Birthdate > minClassificationBirthdate;
+            return user.Birthdate <= minClassificationBirthdate;
         }
-
     }
 }

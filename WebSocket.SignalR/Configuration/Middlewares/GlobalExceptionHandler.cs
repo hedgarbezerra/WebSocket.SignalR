@@ -1,10 +1,11 @@
 ﻿using Azure.Core;
 using FluentResults;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using WebSocket.SignalR.Extensions;
 
-namespace WebSocket.SignalR.Configuration
+namespace WebSocket.SignalR.Configuration.Middlewares
 {
     public class GlobalExceptionHandler : IExceptionHandler
     {
@@ -17,11 +18,10 @@ namespace WebSocket.SignalR.Configuration
 
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-            _logger.LogError(exception, "Exception occurred: {Message} and was caught by global handler.", exception.Message);
+            string requestedUri = httpContext.Request.GetDisplayUrl();
+            _logger.LogError(exception, "Exception occurred at {RequestedUrl}: {Message} and was caught by global handler.", requestedUri, exception.Message);
 
-            string requestedUri = string.Concat(httpContext.Request?.Scheme, "://", httpContext.Request?.Host.ToUriComponent());
             var error = new Error($"Something happened while processing your [{httpContext.Request?.Method}] request to '{requestedUri}'.");
-
             var result = Result.Fail(error).FromResult();
 
             httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;

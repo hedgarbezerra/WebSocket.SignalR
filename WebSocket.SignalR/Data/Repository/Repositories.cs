@@ -1,4 +1,5 @@
-﻿using WebSocket.SignalR.Configuration;
+﻿using System.Security.Cryptography;
+using WebSocket.SignalR.Configuration;
 using WebSocket.SignalR.Interfaces;
 using WebSocket.SignalR.Models;
 
@@ -34,6 +35,17 @@ namespace WebSocket.SignalR.Data.Repository
         {
             public MoviesRepository(AppDbContext dbContext) : base(dbContext)
             {
+            }
+
+            public override Movie Update(Movie obj)
+            {
+                var movieCtx = Get(obj.Id);
+                var entry = _dbContext.Entry(movieCtx);
+
+                entry.CurrentValues.SetValues(obj);
+                entry.Navigation(nameof(Movie.Genres)).CurrentValue = obj.Genres;
+
+                return movieCtx;
             }
         }
 

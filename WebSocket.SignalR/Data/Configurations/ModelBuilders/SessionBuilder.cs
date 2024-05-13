@@ -22,12 +22,18 @@ namespace WebSocket.SignalR.Data.Configurations.ModelBuilders
             builder.HasMany(p => p.SeatsTaken)
                 .WithOne(p => p.Session)
                 .HasForeignKey(p => p.SessionId);
+
             builder.HasOne(p => p.Movie)
                 .WithMany()
                 .HasForeignKey(p => p.MovieId);
+
             builder.HasOne(p => p.Room)
                 .WithMany()
-                .HasForeignKey(p => p.MovieId);
+                .HasForeignKey(p => p.RoomId);
+
+            builder.Navigation(p => p.Room).EnableLazyLoading().AutoInclude();
+            builder.Navigation(p => p.Movie).EnableLazyLoading().AutoInclude();
+            builder.Navigation(p => p.SeatsTaken).EnableLazyLoading().AutoInclude();
 
             builder.Ignore(p => p.IsFull);
         }

@@ -35,6 +35,7 @@ namespace WebSocket.SignalR.Controllers
         [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult Get()
         {
+            throw new Exception();
             var sessions = _sessionsService.GetSessions().FromResult();
 
             return Ok(sessions);
@@ -111,26 +112,48 @@ namespace WebSocket.SignalR.Controllers
         }
 
 
-        [HttpPost]
-        [Route("{sessionId:guid}/seat")]
+        [HttpGet]
+        [Route("{sessionId:guid}/seats/available")]
         [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
-        public IActionResult AssignSeat([FromRoute] Guid sessionId, [FromBody] AssignSeatToUserDTO request)
+        public IActionResult GetEmptySeats([FromRoute] Guid sessionId)
         {
-            var user = GetAuthentcatedUser();
-            var result = _sessionsService.AssignSeatToUserSession(request.SeatId, user.Id, sessionId).FromResult();
+            var result = _sessionsService.GetSeatsEmpty(sessionId).FromResult();
+
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route("{sessionId:guid}/seats/taken")]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
+        public IActionResult GetSeatsTaken([FromRoute] Guid sessionId)
+        {
+            var result = _sessionsService.GetSeatsTaken(sessionId).FromResult();
 
             return Ok(result);
         }
 
         [HttpPost]
-        [Route("{sessionId:guid}/seats")]
+        [Route("{sessionId:guid}/seats/acquire/{seatId:guid}")]
+        [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
+        public IActionResult AssignSeat([FromRoute] Guid sessionId, [FromRoute] Guid seatId)
+        {
+            var user = GetAuthentcatedUser();
+            var result = _sessionsService.AssignSeatToUserSession(seatId, sessionId, user).FromResult();
+
+            return Ok(result);
+        }
+
+        [HttpPost]
+        [Route("{sessionId:guid}/seats/acquire")]
         [ProducesResponseType(typeof(ResultDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult AssignSeats([FromRoute] Guid sessionId, [FromBody] AssignMultipleSeatsToUserDTO request)
         {
             var user = GetAuthentcatedUser();
-            var result = _sessionsService.AssignSeatToUserSession(user.Id, sessionId, request.SeatsIds).FromResult();
+            var result = _sessionsService.AssignSeatToUserSession(sessionId, request.SeatsIds, user).FromResult();
 
             return Ok(result);
         }

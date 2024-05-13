@@ -5,6 +5,7 @@ namespace WebSocket.SignalR.Models
     public class Seat
     {
         public Guid Id { get; set; }
+        [JsonIgnore]
         public Guid RoomId { get; set; }
         public int Row { get; set; }
         public int Column { get; set; }
