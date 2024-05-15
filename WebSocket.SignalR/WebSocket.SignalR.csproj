@@ -37,4 +37,12 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EditorConfigFiles Remove="C:\Users\hedga\source\repos\WebSocket.SignalR\WebSocket.SignalR\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="C:\Users\hedga\source\repos\WebSocket.SignalR\WebSocket.SignalR\.editorconfig" />
+  </ItemGroup>
+
 </Project>

@@ -1,5 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { HomeComponent } from './common/components/home/home.component';
+import { canActivateAuthenticatedRouteGuard, canActivateChildAuthenticatedRouteGuard, unsavedChangesGuard } from './common/guards/guards';
+import { LoginComponent } from './modules/users/components/login/login.component';
+import { SignupComponent } from './modules/users/components/signup/signup.component';
 
 const routes: Routes = [
   {
@@ -9,9 +13,15 @@ const routes: Routes = [
   },
   {
     path: 'app',
-    //canActivate: [guards.canActivateAuthenticated],
-    //canActivateChild: [guards.canActivateAuthenticatedChild],
+    canActivate: [canActivateAuthenticatedRouteGuard],
+    canActivateChild: [canActivateChildAuthenticatedRouteGuard],
+    canDeactivate: [unsavedChangesGuard],
     children: [
+      {
+        path: '',
+        component: HomeComponent,
+        data:{animation: 'homePage'}
+      },
       {
         path: 'users',
         loadChildren: () =>
@@ -41,6 +51,20 @@ const routes: Routes = [
       },
     ],
   },
+  {
+    path: 'login',
+    component: LoginComponent,
+    data:{animation: 'loginPage'}
+  },
+  {
+    path: 'signup',
+    component: SignupComponent,
+    data:{animation: 'signUpPage'}
+  },
+  {
+    path: '**',
+    redirectTo: 'app'
+  }
 ];
 
 @NgModule({

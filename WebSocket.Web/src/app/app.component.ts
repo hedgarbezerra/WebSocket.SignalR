@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { routesAnimations } from './common/animations/basic-animations';
+import { slideInAnimation } from './common/animations/basic-animations';
 import { LoadingSpinnerService } from './common/services/loading-spinner.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
-  animations: [routesAnimations]
+  animations: [slideInAnimation]
 })
 export class AppComponent implements OnInit {
 
@@ -20,5 +20,5 @@ export class AppComponent implements OnInit {
     return outlet && outlet.activatedRouteData && outlet.activatedRouteData['animation'];
   }
 
-  title = 'Movie tickets';
+  title = 'Movies';
 }

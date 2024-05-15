@@ -16,10 +16,15 @@ import { ErrorHandlingHttpInterceptor } from './common/interceptors/ErrorHandlin
 import { RequestLoaderInterceptor } from './common/interceptors/RequestLoaderInterceptor';
 import { PaginatorTranslationService } from './common/services/paginator-translation.service';
 import { InternalCommonModule } from './common/internal-common.module';
+import { MomentModule } from 'ngx-moment';
+import { LoginComponent } from './modules/users/components/login/login.component';
+import { SignupComponent } from './modules/users/components/signup/signup.component';
 
 @NgModule({
   declarations: [
     AppComponent,
+    LoginComponent,
+    SignupComponent,
   ],
   imports: [
     BrowserModule,
@@ -29,12 +34,14 @@ import { InternalCommonModule } from './common/internal-common.module';
     ReactiveFormsModule,
     AppRoutingModule,
     InternalCommonModule,
+    MaterialExportModule,
+    MomentModule
   ],
   providers: [
     provideAnimationsAsync(),
     { provide: MAT_DATE_LOCALE, useValue: 'pt-br' },
-    { provide: HTTP_INTERCEPTORS, useClass: UnauthenticatedUserInterceptor },
-    { provide: HTTP_INTERCEPTORS, useClass: BearerTokenRequestAssignerInterceptor },
+    { provide: HTTP_INTERCEPTORS, useClass: UnauthenticatedUserInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: BearerTokenRequestAssignerInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorHandlingHttpInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: RequestLoaderInterceptor, multi: true },
     { provide: MatPaginatorIntl, useClass: PaginatorTranslationService },

@@ -8,7 +8,7 @@ export class BearerTokenRequestAssignerInterceptor implements HttpInterceptor {
   constructor(private authService: AuthenticationService) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler) {
-    const authToken = "";//this.authService.token;
+    const authToken = this.authService.bearerToken;
 
     req = req.clone({
       setHeaders: {

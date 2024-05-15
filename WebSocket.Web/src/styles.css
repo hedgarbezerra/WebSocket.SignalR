@@ -2,3 +2,22 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+
+.spinner-loading{
+  position: fixed !important;
+  top: 40% !important;
+  left: 50% !important;
+  margin-right: -50%;
+  transform: translate(-50%, -50%)
+}
+
+.spinner-container {
+  top: 0;
+  left: 0;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  backdrop-filter: blur(1.5px);
+}

@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LoadingSpinnerComponent } from './loading-spinner/loading-spinner.component';
 import { MaterialExportModule } from '../imported-modules/material.module';
+import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
 
 
 
@@ -11,6 +11,6 @@ import { MaterialExportModule } from '../imported-modules/material.module';
     CommonModule,
     MaterialExportModule
   ],
-  exports: [ LoadingSpinnerComponent]
+  exports: [LoadingSpinnerComponent]
 })
 export class InternalCommonModule { }

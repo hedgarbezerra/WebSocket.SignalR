@@ -1,29 +1,5 @@
 import { animate, animateChild, group, query, style, transition, trigger } from "@angular/animations";
 
-const defaultSlideRightAnimations = [
-  style({ position: 'relative' }),
-  query(':enter, :leave', [
-    style({
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%'
-    })
-  ], {optional: true}),
-  query(':enter', [
-    style({ left: '-100%' })
-  ], {optional: true}),
-  query(':leave', animateChild(), {optional: true}),
-  group([
-    query(':leave', [
-      animate('350ms ease-out', style({ left: '100%', opacity: 0 }))
-    ], {optional: true}),
-    query(':enter', [
-      animate('350ms ease-out', style({ left: '0%' }))
-    ], {optional: true}),
-    query('@*', animateChild(), {optional: true})
-  ]),
-];
 const defaultSlideLeftAnimations = [
   style({ position: 'relative' }),
   query(':enter, :leave', [
@@ -65,22 +41,30 @@ export const showStateTrigger = trigger('show',[
     ])
 ]);
 
-export const routesAnimations =
+export const slideInAnimation =
   trigger('routeAnimations', [
-    transition('* <=> *', defaultSlideLeftAnimations),
-  ]);
-
-export const slideTransition = trigger('routeAnimations', [
     transition('* <=> *', [
-      query(':enter, :leave', style({ position: 'fixed', width:'100%' })),
+      style({ position: 'relative' }),
+      query(':enter, :leave', [
+        style({
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%'
+        })
+      ], { optional: true }),
+      query(':enter', [
+        style({ left: '-100%' })
+      ], { optional: true }),
+      query(':leave', animateChild(), { optional: true }),
       group([
-        query(':enter', [
-          style({ transform: 'translateX(100%)' }),
-          animate('0.35s ease-in-out', style({ transform: 'translateX(0%)' }))
-        ]),
         query(':leave', [
-          style({ transform: 'translateX(0%)' }),
-          animate('0.35s ease-in-out', style({ transform: 'translateX(-100%)' }))]),
-      ])
+          animate('200ms ease-out', style({ left: '100%', opacity: 0 }))
+        ], { optional: true }),
+        query(':enter', [
+          animate('300ms ease-out', style({ left: '0%' }))
+        ], { optional: true }),
+        query('@*', animateChild(), { optional: true })
+      ]),
     ])
-]);
+  ]);

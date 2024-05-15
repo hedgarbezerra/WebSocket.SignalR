@@ -22,16 +22,6 @@ namespace WebSocket.SignalR.Data.Configurations.ModelBuilders
             builder.HasMany(m => m.Genres)
                .WithMany(g => g.Movies);
             builder.Navigation(p => p.Genres).EnableLazyLoading().AutoInclude();
-            //.UsingEntity<Dictionary<string, object>>(
-            //    "MovieGenre",
-            //    j => j.HasOne<Genre>().WithMany().HasForeignKey("GenreId"),
-            //    j => j.HasOne<Movie>().WithMany().HasForeignKey("MovieId"),
-            //    j =>
-            //    {
-            //        j.Property<Guid>("MovieId");
-            //        j.Property<Guid>("GenreId");
-            //        j.HasKey("MovieId", "GenreId");
-            //    });
 
         }
     }

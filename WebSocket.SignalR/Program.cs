@@ -31,7 +31,6 @@ builder.Services.AddAutoMapper(typeof(AutoMapperSetup).Assembly);
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-
 var app = builder.Build();
 
 app.UseSwagger();
@@ -48,7 +47,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
 app.UseHttpsRedirection();
-app.UseCors();
+app.UseCors(opt =>
+{
+    opt.AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowAnyOrigin();
+});
 
 app.MapGroup("api/identity")
     .MapIdentityApi<AppUser>();
