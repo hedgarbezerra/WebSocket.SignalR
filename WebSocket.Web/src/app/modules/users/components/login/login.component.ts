@@ -14,6 +14,7 @@ import { FormComponent } from '../../../../common/interfaces/form-component';
 export class LoginComponent implements FormComponent {
 
   constructor(private authService: AuthenticationService, private router: Router, private snackBar: MatSnackBar){}
+  hasUnsavedChanges: boolean = true;
 
   hidePassword: boolean = true;
 
@@ -33,9 +34,14 @@ export class LoginComponent implements FormComponent {
     let login = this.form.value as Login;
 
     this.authService.authenticate(login)
-      .subscribe(authResult =>{
-        if(this.authService.isUserAuthenticated){
-          this.router.navigate(['/'])
+      .subscribe({
+        next: authResult =>{
+          if(this.authService.isUserAuthenticated){
+            this.router.navigate(['/'])
+          }
+        },
+        error: err =>{
+          this.snackBar.open('Usuário ou senha inválidos, tente novamente.')
         }
       });
   }

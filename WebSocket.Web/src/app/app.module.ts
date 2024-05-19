@@ -40,10 +40,10 @@ import { SignupComponent } from './modules/users/components/signup/signup.compon
   providers: [
     provideAnimationsAsync(),
     { provide: MAT_DATE_LOCALE, useValue: 'pt-br' },
-    { provide: HTTP_INTERCEPTORS, useClass: UnauthenticatedUserInterceptor, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: BearerTokenRequestAssignerInterceptor, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: ErrorHandlingHttpInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: RequestLoaderInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: BearerTokenRequestAssignerInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: UnauthenticatedUserInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: ErrorHandlingHttpInterceptor, multi: true },
     { provide: MatPaginatorIntl, useClass: PaginatorTranslationService },
   ],
   bootstrap: [AppComponent]

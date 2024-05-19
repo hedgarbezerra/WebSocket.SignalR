@@ -37,7 +37,7 @@ constructor(protected httpClient : HttpClient) { }
   }
 
   register(user: RegisterUser) : Observable<ApiEmptyResult>{
-    return this.httpClient.post<ApiEmptyResult>(`${environment.apiUrl}/identity/refresh`, user);
+    return this.httpClient.post<ApiEmptyResult>(`${environment.apiUrl}/Identity/register`, user);
   }
 
   signOut(){

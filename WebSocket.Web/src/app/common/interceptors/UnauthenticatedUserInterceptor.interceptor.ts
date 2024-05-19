@@ -12,7 +12,7 @@ export class UnauthenticatedUserInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler) {
     return next.handle(req).pipe(
       catchError((err) => {
-        if (err instanceof HttpErrorResponse && err.status === 401 && !err.url?.includes('login'))
+        if (err instanceof HttpErrorResponse && err.status === 401 && !err.url?.includes('login')){
           if(this.authService.refreshToken == null || this.authService.refreshToken.length <= 0){
             this.router.navigate(['/login']);
           }
@@ -25,6 +25,8 @@ export class UnauthenticatedUserInterceptor implements HttpInterceptor {
               }
             })
           }
+        }
+
         return throwError(() => err);
       })
     );

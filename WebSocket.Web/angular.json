@@ -35,10 +35,13 @@
               "src/assets"
             ],
             "styles": [
-              "src/custom-theme.scss",
+              "@materializecss/materialize/dist/css/materialize.min.css",
+              "@angular/material/prebuilt-themes/indigo-pink.css",
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [
+              "@materializecss/materialize/dist/js/materialize.min.js"
+            ]
           },
           "configurations": {
             "production": {
@@ -95,6 +98,7 @@
               "src/assets"
             ],
             "styles": [
+              "@angular/material/prebuilt-themes/indigo-pink.css",
               "src/styles.css"
             ],
             "scripts": [],

@@ -21,3 +21,18 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   z-index: 9999;
   backdrop-filter: blur(1.5px);
 }
+.mat-mdc-form-field {
+  padding: 10px !important;
+}
+.mat-mdc-text-field-wrapper:not(.mdc-text-field--outlined) .mat-mdc-form-field-infix
+{
+  padding: 10px !important;
+}
+
+.mat-mdc-form-field {
+  display: flex !important;
+}
+
+.mat-mdc-paginator-container{
+  justify-content: center !important;
+}

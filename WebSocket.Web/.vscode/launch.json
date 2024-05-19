@@ -2,17 +2,23 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "edge",
+      "command": "ng serve",
+      "name": "Run npm start",
       "request": "launch",
-      "name": "localhost (Edge)",
-      "url": "https://localhost:4200",
-      "webRoot": "${workspaceFolder}"
+      "type": "node-terminal"
+    },
+
+    {
+      "command": "ng serve",
+      "name": "Run ng serve",
+      "request": "launch",
+      "type": "node-terminal"
     },
     {
       "type": "chrome",
       "request": "launch",
       "name": "localhost (Chrome)",
-      "url": "https://localhost:4200",
+      "url": "http://localhost:4200",
       "webRoot": "${workspaceFolder}"
     }
   ]

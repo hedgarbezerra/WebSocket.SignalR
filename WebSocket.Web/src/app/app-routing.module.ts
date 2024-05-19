@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { HomeComponent } from './common/components/home/home.component';
-import { canActivateAuthenticatedRouteGuard, canActivateChildAuthenticatedRouteGuard, unsavedChangesGuard } from './common/guards/guards';
+import { canActivateAlreadyAuthenticatedRouteGuard, canActivateAuthenticatedRouteGuard, canActivateChildAuthenticatedRouteGuard, unsavedChangesGuard } from './common/guards/guards';
 import { LoginComponent } from './modules/users/components/login/login.component';
 import { SignupComponent } from './modules/users/components/signup/signup.component';
 
@@ -54,12 +54,16 @@ const routes: Routes = [
   {
     path: 'login',
     component: LoginComponent,
-    data:{animation: 'loginPage'}
+    data:{animation: 'loginPage'},
+    canActivate: [canActivateAlreadyAuthenticatedRouteGuard],
+    canDeactivate: [unsavedChangesGuard]
   },
   {
     path: 'signup',
     component: SignupComponent,
-    data:{animation: 'signUpPage'}
+    data:{animation: 'signUpPage'},
+    canActivate: [canActivateAlreadyAuthenticatedRouteGuard],
+    canDeactivate: [unsavedChangesGuard]
   },
   {
     path: '**',
