@@ -1,4 +1,4 @@
-﻿<app-loading-spinner *ngIf="spinnerService.visibility | async"></app-loading-spinner>
+<app-loading-spinner *ngIf="spinnerService.visibility | async"></app-loading-spinner>
 <main class="main container" [@routeAnimations]="prepareRoute(outlet)">
   <router-outlet #outlet="outlet"></router-outlet>
 </main>

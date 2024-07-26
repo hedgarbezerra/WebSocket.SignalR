@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { HomeComponent } from './common/components/home/home.component';
-import { canActivateAlreadyAuthenticatedRouteGuard, canActivateAuthenticatedRouteGuard, canActivateChildAuthenticatedRouteGuard, unsavedChangesGuard } from './common/guards/guards';
+import { canActivateAuthenticatedRouteGuard, canActivateChildAuthenticatedRouteGuard, unsavedChangesGuard, canActivateAlreadyAuthenticatedRouteGuard } from './common/guards/guards';
 import { LoginComponent } from './modules/users/components/login/login.component';
 import { SignupComponent } from './modules/users/components/signup/signup.component';
 
@@ -70,9 +70,8 @@ const routes: Routes = [
     redirectTo: 'app'
   }
 ];
-
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule],
+  exports: [RouterModule]
 })
-export class AppRoutingModule {}
+export class AppRoutingModule { }

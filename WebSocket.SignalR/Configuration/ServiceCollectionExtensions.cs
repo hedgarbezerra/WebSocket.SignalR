@@ -19,23 +19,35 @@ namespace WebSocket.SignalR.Configuration
         public static IServiceCollection AddLogging(this IServiceCollection services, IConfiguration configuration)
         {
             var context = services.BuildServiceProvider().GetRequiredService<IWebHostEnvironment>();
-            services.AddSerilog(opt =>
-            {
-                opt.Enrich.FromLogContext();
-                opt.WriteTo.File(Path.Combine(context.WebRootPath, "logs", "diagnostics-.txt"),
-                    rollingInterval: RollingInterval.Minute,
+
+            Log.Logger = new LoggerConfiguration()
+                .Enrich.FromLogContext()
+                .WriteTo.Console(Serilog.Events.LogEventLevel.Verbose)
+                .WriteTo.File(Path.Combine(context.WebRootPath, "logs", "diagnostics-.txt"),
+                    rollingInterval: RollingInterval.Hour,
                     fileSizeLimitBytes: 10 * 1024 * 1024,
                     rollOnFileSizeLimit: true,
-                    flushToDiskInterval: TimeSpan.FromSeconds(1));
-                opt.WriteTo.File(new RenderedCompactJsonFormatter(), Path.Combine(context.WebRootPath, "jsonlogs", "diagnostics-.json"),
-                    rollingInterval: RollingInterval.Minute,
-                    fileSizeLimitBytes: 10 * 1024 * 1024,
-                    rollOnFileSizeLimit: true,
-                    flushToDiskInterval: TimeSpan.FromSeconds(1));
-            });
+                    flushToDiskInterval: TimeSpan.FromMinutes(1))
+                .WriteTo.OpenTelemetry(opt =>
+                {
+                    opt.Endpoint = configuration.GetValue<string>("OpenTelemetry:Endpoint");
+                    opt.Protocol = Serilog.Sinks.OpenTelemetry.OtlpProtocol.HttpProtobuf;
+                    opt.Headers = new Dictionary<string, string>()
+                    {
+                        ["X-Seq-ApiKey"] = configuration.GetValue<string>("OpenTelemetry:APIKey")
+                    };
+                    opt.ResourceAttributes = new Dictionary<string, object>()
+                    {
+                        ["Service.Name"] = "WebSocket.SignalR"
+                    };
+                })
+                .CreateLogger();
+
+            services.AddSerilog();
 
             return services;
         }
+
         public static IServiceCollection AddVersioning(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddEndpointsApiExplorer();
