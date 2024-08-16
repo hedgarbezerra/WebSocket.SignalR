@@ -35,6 +35,7 @@ namespace WebSocket.SignalR.Controllers
         [ProducesResponseType(typeof(ResultDTO),StatusCodes.Status500InternalServerError)]
         public IActionResult Get()
         {
+            throw new Exception("aaaa");
             var genres = _moviesService.GetGenres().FromResult();
 
             return Ok(genres);

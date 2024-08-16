@@ -6,6 +6,8 @@ using Serilog;
 using Serilog.Formatting.Compact;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
+using WebSocket.SignalR.Configuration.Middlewares.EntityFramework.ExecutionStrategies;
+using WebSocket.SignalR.Configuration.Middlewares.EntityFramework.Interceptors;
 using WebSocket.SignalR.Data;
 using WebSocket.SignalR.Data.Configurations;
 using WebSocket.SignalR.Interfaces;
@@ -83,7 +85,13 @@ namespace WebSocket.SignalR.Configuration
                 opt.UseSqlServer(connectionString, sqlOpt =>
                 {
                     sqlOpt.EnableRetryOnFailure(3);
-                });
+                    //Pegar configurações do appSettings e adicionar log
+                    sqlOpt.ExecutionStrategy(es => new CustomRetryExecutionStrategy(es, 3, TimeSpan.FromSeconds(15), [1, 5]));
+                    sqlOpt.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                })
+                .AddInterceptors(
+                    new AadAuthenticationInterceptor(),
+                    new EfLoggingInterceptor());
             });
 
             services.AddIdentityCore<AppUser>(opt => IdentityConfigurationOptions.Configure(opt))
