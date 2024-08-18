@@ -6,6 +6,7 @@ using WebSocket.SignalR;
 using WebSocket.SignalR.Configuration;
 using WebSocket.SignalR.Models;
 using WebSocket.SignalR.Configuration.Middlewares;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,7 @@ app.UseSwaggerUI(c =>
     }
 });
 
+app.UseSerilogRequestLogging();
 app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -53,6 +55,8 @@ app.UseCors(opt =>
     .AllowAnyMethod()
     .AllowAnyOrigin();
 });
+
+app.UseMiddleware<TracingMiddleware>();
 
 app.MapGroup("api/identity")
     .MapIdentityApi<AppUser>();

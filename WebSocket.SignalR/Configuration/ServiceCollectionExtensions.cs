@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Formatting.Compact;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -40,10 +42,23 @@ namespace WebSocket.SignalR.Configuration
                     };
                     opt.ResourceAttributes = new Dictionary<string, object>()
                     {
-                        ["Service.Name"] = "WebSocket.SignalR"
+                        ["service.name"] = "WebSocket.SignalR"
                     };
                 })
                 .CreateLogger();
+
+            services.AddOpenTelemetry()
+               .WithTracing(tracing => tracing
+                   .AddSource("WebSocket.SignalR.Tracing")
+                   .AddAspNetCoreInstrumentation()
+                   .AddHttpClientInstrumentation()
+                   .AddOtlpExporter(exporter =>
+                   {
+                       exporter.Endpoint = new Uri(configuration.GetValue<string>("OpenTelemetry:Endpoint"));
+                       exporter.Protocol = OtlpExportProtocol.HttpProtobuf;
+                       exporter.Headers = $"X-Seq-ApiKey={configuration.GetValue<string>("OpenTelemetry:APIKey")}";
+
+                   }));
 
             services.AddSerilog();
 
